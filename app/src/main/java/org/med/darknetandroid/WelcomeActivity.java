@@ -20,6 +20,7 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
@@ -43,12 +44,21 @@ public class WelcomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
         ImageView splash = findViewById(R.id.welcome_imageView);
-        splash.setVisibility(View.VISIBLE);
-        checkPermissions(0);
+        Bundle error = getIntent().getExtras();
+        TextView textView = findViewById(R.id.welcome_loading);
+        textView.setText("Downloading resources");
+        if(error != null && error.getBoolean("error", false)){
+            textView.setText("Failed to download resources, Check your internet connection");
+            splash.setImageResource(R.drawable.error);
+        }else{
+            splash.setImageResource(R.drawable.loading);
+            checkPermissions(0);
+        }
 
-        Intent intent = new Intent(this, ItemsActivity.class);
-        startActivity(intent);
-        finish();
+
+//        Intent intent = new Intent(this, ItemsActivity.class);
+//        startActivity(intent);
+//        finish();
     }
 
     public void checkPermissions(int requestCode){
@@ -60,29 +70,30 @@ public class WelcomeActivity extends AppCompatActivity {
         if (permissionCheck != PackageManager.PERMISSION_GRANTED || permissionCheckStorage!= PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, requestCode);
         } else if (requestCode == 0){
-            Intent welcome = new Intent(this, AddItemActivity.class);
-            startActivity(welcome);
-            finish();
+            new DownloadFileFromURL(this).execute(labelsPath);
+            new DownloadFileFromURL(this).execute(weightsPath);
+            new DownloadFileFromURL(this).execute(cfgPath);
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(grantResults[0] == PERMISSION_GRANTED && grantResults[1] == PERMISSION_GRANTED && requestCode == 0) {
-            new DownloadFileFromURL(this).execute(labelsPath);
-            new DownloadFileFromURL(this).execute(weightsPath);
-            new DownloadFileFromURL(this).execute(cfgPath);
-            Intent welcome = new Intent(this, AddItemActivity.class);
-            startActivity(welcome);
+        if (grantResults.length > 1){
+            if(grantResults[0] == PERMISSION_GRANTED && grantResults[1] == PERMISSION_GRANTED && requestCode == 0) {
+                new DownloadFileFromURL(this).execute(labelsPath);
+                new DownloadFileFromURL(this).execute(weightsPath);
+                new DownloadFileFromURL(this).execute(cfgPath);
+            }
         }
+
         else
         {
             Toast.makeText(this, "Permissions are needed to detect your item", Toast.LENGTH_SHORT).show();
             Intent welcome = new Intent(this, WelcomeActivity.class);
             startActivity(welcome);
+            finish();
         }
-        finish();
     }
 
 
@@ -115,8 +126,8 @@ public class WelcomeActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... f_url) {
             int count;
+            String fileName = f_url[0].split("/")[3];
             try {
-                String fileName = f_url[0].split("/")[3];
                 URL url = new URL(f_url[0]);
                 URLConnection connection = url.openConnection();
                 connection.connect();
@@ -148,9 +159,16 @@ public class WelcomeActivity extends AppCompatActivity {
                     activity.startActivity(welcome);
                     activity.finish();
                 }
+                Log.i("upload", "1 File Uploaded");
 
             } catch (Exception e) {
                 Log.e("Error: ", e.getMessage());
+                if(fileName.equalsIgnoreCase("labels.txt")) {
+                    Intent welcome = new Intent(activity, ErrorActivity.class);
+                    welcome.putExtra("error", true);
+                    activity.startActivity(welcome);
+                    activity.finish();
+                }
             }
 
             return null;

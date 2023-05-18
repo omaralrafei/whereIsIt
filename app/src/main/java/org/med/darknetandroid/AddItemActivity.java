@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -151,12 +152,22 @@ public class AddItemActivity extends AppCompatActivity {
         // use the FileUtils to get the actual file by uri
 
         File file = new File(fileUri.toString());
+        String fileType = getMimeType(file.toString());
 
         // create RequestBody instance from file
-        RequestBody requestFile = RequestBody.create(MediaType.parse(getContentResolver().getType(fileUri)), file);
+        RequestBody requestFile = RequestBody.create(MediaType.parse(fileType), file);
 
         // MultipartBody.Part is used to send also the actual file name
         return MultipartBody.Part.createFormData(partName, file.getName(), requestFile);
+    }
+
+    public static String getMimeType(String url) {
+        String type = null;
+        String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+        if (extension != null) {
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        }
+        return type;
     }
 
     @Override

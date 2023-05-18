@@ -26,7 +26,6 @@ import static androidx.core.content.PermissionChecker.PERMISSION_GRANTED;
 public class ItemsActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
     List<Items> itemsList = new ArrayList<>();
-    private static boolean permissionGranted = false;
     private static String selectedItem = "";
 
     @Override
@@ -38,7 +37,9 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
         addItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                checkPermissions(2);
+                Intent welcome = new Intent(ItemsActivity.this, AddItemActivity.class);
+                startActivity(welcome);
+                finish();
             }
         });
 
@@ -57,72 +58,19 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
     public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
         Items item = itemsList.get(position);
         selectedItem = item.getLabelName();
+        setContentView(R.layout.activity_welcome);
 
-        if (!permissionGranted) {
-            checkPermissions(1);
-        }
-    }
-    public boolean checkPermissions(int requestCode){
-        int permissionCheck = ContextCompat.checkSelfPermission(this,
-                Manifest.permission.CAMERA);
-
-        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, requestCode);
-            return false;
-        } else if (requestCode == 2){
-            Intent welcome = new Intent(this, AddItemActivity.class);
-            startActivity(welcome);
-            finish();
-        }
-            else if (requestCode == 1){
-            permissionGranted = true;
-            setContentView(R.layout.activity_welcome);
-
-            int SPLASH_TIME = 3000;
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    Intent welcome = new Intent(ItemsActivity.this, CameraActivity.class);
-                    Bundle b = new Bundle();
-                    b.putString("labelName", selectedItem);
-                    welcome.putExtras(b);
-                    startActivity(welcome);
-                    finish();
-                }
-            },SPLASH_TIME);
-            return true;
-        }
-            return false;
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(grantResults[0] == PERMISSION_GRANTED && grantResults[1] == PERMISSION_GRANTED && requestCode == 1) {
-            setContentView(R.layout.activity_welcome);
-            int SPLASH_TIME = 3000;
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    Intent welcome = new Intent(ItemsActivity.this, CameraActivity.class);
-                    Bundle b = new Bundle();
-                    b.putString("labelName", selectedItem);
-                    welcome.putExtras(b);
-                    startActivity(welcome);
-                    finish();
-                }
-            },SPLASH_TIME);
-        } else if(grantResults[0] == PERMISSION_GRANTED && grantResults[1] == PERMISSION_GRANTED && requestCode == 2){
-            Intent welcome = new Intent(this, AddItemActivity.class);
-            startActivity(welcome);
-            finish();
-        }
-        else
-        {
-            Toast.makeText(this, "Permissions are needed to detect your item", Toast.LENGTH_SHORT).show();
-            Intent welcome = new Intent(this, WelcomeActivity.class);
-            startActivity(welcome);
-            finish();
-        }
+        int SPLASH_TIME = 3000;
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Intent welcome = new Intent(ItemsActivity.this, CameraActivity.class);
+                Bundle b = new Bundle();
+                b.putString("labelName", selectedItem);
+                welcome.putExtras(b);
+                startActivity(welcome);
+                finish();
+            }
+        },SPLASH_TIME);
     }
 }
