@@ -6,7 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class NetworkClient {
     public static Retrofit retrofit;
-    public static String baseUrl = ":8080";
+    public static String baseUrl = "http://10.31.207.47:8080/";
 
     public static Retrofit getRetrofit(){
         OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
