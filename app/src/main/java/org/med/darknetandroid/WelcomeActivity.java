@@ -28,19 +28,6 @@ public class WelcomeActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if(resultCode==-1 && requestCode==101){
-            String result = data.getStringExtra("RESULT");
-            Uri resultUri = null;
-            if(result != null){
-                resultUri = Uri.parse(result);
-            }
-
-        }
-    }
-
-    @Override
     public void onBackPressed() {
         if(getSupportFragmentManager().getBackStackEntryCount() == 1) {
             moveTaskToBack(false);
