@@ -133,6 +133,7 @@ public class AddItemActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e(TAG, t.getMessage(), t );
                 Toast.makeText(AddItemActivity.this, "Failed to upload item! Try again", Toast.LENGTH_SHORT).show();
             }
         });
@@ -173,6 +174,14 @@ public class AddItemActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        try {
+            UCrop.getOutputImageWidth(data);
+        }catch (Exception e) {
+            Intent intent = new Intent(AddItemActivity.this, WelcomeActivity.class);
+            startActivity(intent);
+            AddItemActivity.this.finish();
+            return;
+        }
         if(requestCode == UCrop.REQUEST_CROP){
             final Uri resultUri = UCrop.getOutput(data);
 
@@ -192,15 +201,15 @@ public class AddItemActivity extends AppCompatActivity {
             final Throwable cropError = UCrop.getError(data);
             Log.e(TAG, cropError.getMessage());
         }
-        if (requestCode==3)
-        {
-            Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            File destination = new File(this.getExternalCacheDir(),"temp.jpg");
-            new AndroidBmpUtil().save(thumbnail, destination.toString());
-            String dest_uri = new StringBuilder(UUID.randomUUID().toString()).append(".jpg").toString();
-            Uri destinationFileUri = Uri.fromFile(new File(getCacheDir(),dest_uri));
-            UCrop.of(Uri.fromFile(destination), destinationFileUri).withAspectRatio(1,1).start(this);
-        }
+//        if (requestCode==3)
+//        {
+//            Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
+//            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+//            File destination = new File(this.getExternalCacheDir(),"temp.jpg");
+//            new AndroidBmpUtil().save(thumbnail, destination.toString());
+//            String dest_uri = new StringBuilder(UUID.randomUUID().toString()).append(".jpg").toString();
+//            Uri destinationFileUri = Uri.fromFile(new File(getCacheDir(),dest_uri));
+//            UCrop.of(Uri.fromFile(destination), destinationFileUri).withAspectRatio(1,1).start(this);
+//        }
     }
 }

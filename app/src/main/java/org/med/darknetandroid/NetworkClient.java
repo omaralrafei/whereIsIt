@@ -6,7 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class NetworkClient {
     public static Retrofit retrofit;
-    public static String baseUrl = "http://5bd8-77-42-248-5.ngrok-free.app/";
+    public static String baseUrl = "http://192.168.130.24:8080/";
 
     public static Retrofit getRetrofit(){
         OkHttpClient okHttpClient = new OkHttpClient.Builder().build();

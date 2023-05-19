@@ -17,8 +17,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -79,12 +81,11 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
             mOpenCvCameraView = findViewById(R.id.CameraView);
             mOpenCvCameraView.setVisibility(CameraBridgeViewBase.VISIBLE);
             mOpenCvCameraView.setCvCameraViewListener(this);
-            classNames = readLabels("labels.txt", this);
+            classNames = readLabels("custom.names", this);
             Bundle bundle = getIntent().getExtras();
             labelName = bundle.getString("labelName");
             for (int i = 0; i < classNames.size(); i++)
                 colors.add(randomColor());
-
     }
 
 
@@ -108,6 +109,9 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
 
         String modelConfiguration = getAssetsFile("yolov3-tiny.cfg", this);
         String modelWeights = getAssetsFile("yolov3-tiny.weights", this);
+
+//        String modelConfiguration = getFilesDir().toString()+"/yolov4-tiny-custom.cfg";
+//        String modelWeights = getFilesDir().toString()+"/yolov4-tiny-custom_best.weights";
         net = Dnn.readNetFromDarknet(modelConfiguration, modelWeights);
     }
 
@@ -135,7 +139,7 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         List<String> outBlobNames = net.getUnconnectedOutLayersNames();
 
         net.forward(result, outBlobNames);
-        float confThreshold = 0.5f;
+        float confThreshold = 0.2f;
 
         for (int i = 0; i < result.size(); ++i) {
             // each row is a candidate detection, the 1st 4 numbers are
@@ -169,11 +173,11 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
                     String label= classNames.get(class_id) + ": " + df.format(confidence);
                     Scalar color= colors.get(class_id);
 
-                    if(ogLabel.equalsIgnoreCase(labelName)){
+                    //if(ogLabel.equalsIgnoreCase(labelName)){
                         Imgproc.rectangle(frame, left_top,right_bottom , color, 3, 2);
                         Imgproc.putText(frame, label, label_left_top, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 0, 0), 4);
                         Imgproc.putText(frame, label, label_left_top, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(255, 255, 255), 2);
-                    }
+                    //}
                 }
             }
         }
@@ -221,24 +225,26 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         List<String> labelsArray = new ArrayList<>();
         try {
             // Read data from assets.
-            inputStream = new BufferedInputStream(assetManager.open(file));
+            File labelFile = new File(context.getFilesDir().toString(), file);
+            FileInputStream fileInputStream = new FileInputStream(labelFile);
+            inputStream = new BufferedInputStream(fileInputStream);
             byte[] data = new byte[inputStream.available()];
             inputStream.read(data);
             inputStream.close();
             // Create copy file in storage.
-            File outFile = new File(context.getFilesDir(), file);
+            File outFile = new File(context.getFilesDir().toString(), file);
             FileOutputStream os = new FileOutputStream(outFile);
             os.write(data);
             os.close();
             Scanner fileScanner = new Scanner(new File(outFile.getAbsolutePath())).useDelimiter("\n");
             String label;
             while (fileScanner.hasNext()) {
-                label = fileScanner.next();
+                label = fileScanner.next().split("\n")[0];
                 labelsArray.add(label);
             }
             fileScanner.close();
         } catch (IOException ex) {
-            Log.i(TAG, "Failed to read labels!");
+            Log.e(TAG, "Failed to read labels!");
         }
         return labelsArray;
     }

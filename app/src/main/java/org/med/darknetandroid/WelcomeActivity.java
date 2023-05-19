@@ -34,31 +34,27 @@ import static androidx.core.content.PermissionChecker.PERMISSION_GRANTED;
 
 public class WelcomeActivity extends AppCompatActivity {
 
-    String labelsPath = NetworkClient.baseUrl+ "labels.txt";
-    String cfgPath = NetworkClient.baseUrl+ "yolov3-tiny.cfg";
-    String weightsPath = NetworkClient.baseUrl+ "yolov3-tiny.weights";
+    String labelsPath = NetworkClient.baseUrl+ "custom.names";
+    String cfgPath = NetworkClient.baseUrl+ "yolov4-tiny-custom.cfg";
+    String weightsPath = NetworkClient.baseUrl+ "yolov4-tiny-custom_best.weights";
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
+
         ImageView splash = findViewById(R.id.welcome_imageView);
-        Bundle error = getIntent().getExtras();
         TextView textView = findViewById(R.id.welcome_loading);
         textView.setText("Downloading resources");
-        if(error != null && error.getBoolean("error", false)){
-            textView.setText("Failed to download resources, Check your internet connection");
-            splash.setImageResource(R.drawable.error);
-        }else{
-            splash.setImageResource(R.drawable.loading);
-            checkPermissions(0);
-        }
-
-
-//        Intent intent = new Intent(this, ItemsActivity.class);
-//        startActivity(intent);
-//        finish();
+        splash.setImageResource(R.drawable.loading);
+//        Bundle error = getIntent().getExtras();
+//        if(error != null && error.getBoolean("error", false)){
+//            textView.setText("Failed to download resources, Check your internet connection");
+//            splash.setImageResource(R.drawable.error);
+//        }else{
+//          }
+        checkPermissions(0);
     }
 
     public void checkPermissions(int requestCode){
@@ -67,9 +63,11 @@ public class WelcomeActivity extends AppCompatActivity {
         int permissionCheckStorage = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
+
         if (permissionCheck != PackageManager.PERMISSION_GRANTED || permissionCheckStorage!= PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, requestCode);
         } else if (requestCode == 0){
+
             new DownloadFileFromURL(this).execute(labelsPath);
             new DownloadFileFromURL(this).execute(weightsPath);
             new DownloadFileFromURL(this).execute(cfgPath);
@@ -112,9 +110,10 @@ public class WelcomeActivity extends AppCompatActivity {
     /**
      * Background Async Task to download file
      * */
-    @SuppressLint("StaticFieldLeak")
-    public static class DownloadFileFromURL extends AsyncTask<String, String, String> {
 
+    public class DownloadFileFromURL extends AsyncTask<String, String, String> {
+
+        @SuppressLint("StaticFieldLeak")
         Activity activity;
         public DownloadFileFromURL(Activity activity){
             this.activity = activity;
@@ -130,19 +129,31 @@ public class WelcomeActivity extends AppCompatActivity {
             try {
                 URL url = new URL(f_url[0]);
                 URLConnection connection = url.openConnection();
+                Log.e("hang", "doInBackground: ");
                 connection.connect();
+
+                // this will be useful so that you can show a tipical 0-100%
+                // progress bar
+                int lengthOfFile = connection.getContentLength();
 
                 // download the file
                 InputStream input = new BufferedInputStream(url.openStream(),
                         8192);
 
                 // Output stream
-                OutputStream output = new FileOutputStream(activity.getFilesDir().toString()
-                        + fileName);
+                OutputStream output = new FileOutputStream(getFilesDir().toString()
+                        + "/" +fileName);
 
                 byte data[] = new byte[1024];
 
+                long total = 0;
+
                 while ((count = input.read(data)) != -1) {
+                    total += count;
+                    // publishing the progress....
+                    // After this onProgressUpdate will be called
+                    publishProgress("" + (int) ((total * 100) / lengthOfFile));
+
                     // writing data to file
                     output.write(data, 0, count);
                 }
@@ -154,7 +165,7 @@ public class WelcomeActivity extends AppCompatActivity {
                 output.close();
                 input.close();
 
-                if(fileName.equalsIgnoreCase("labels.txt") && activity.getClass().getSimpleName().equalsIgnoreCase("WelcomeActivity")){
+                if(fileName.equalsIgnoreCase("custom.names") && activity.getClass().getSimpleName().equalsIgnoreCase("WelcomeActivity")){
                     Intent welcome = new Intent(activity, ItemsActivity.class);
                     activity.startActivity(welcome);
                     activity.finish();
@@ -163,19 +174,14 @@ public class WelcomeActivity extends AppCompatActivity {
 
             } catch (Exception e) {
                 Log.e("Error: ", e.getMessage());
-                if(fileName.equalsIgnoreCase("labels.txt")) {
+                if(fileName.equalsIgnoreCase("custom.names")) {
                     Intent welcome = new Intent(activity, ErrorActivity.class);
                     welcome.putExtra("error", true);
                     activity.startActivity(welcome);
                     activity.finish();
                 }
             }
-
             return null;
         }
-
     }
-
-
-
 }

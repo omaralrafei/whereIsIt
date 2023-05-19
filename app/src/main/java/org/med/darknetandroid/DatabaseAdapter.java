@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
@@ -27,7 +28,7 @@ public class DatabaseAdapter {
     public List<Items> getAllItems(){
         Cursor cursor = db.query("ITEMS", null, null, null, null, null, null);
 
-        classNames = CameraActivity.readLabels("labels.txt", this.context);
+        classNames = CameraActivity.readLabels("custom.names", this.context);
         while(cursor.moveToNext()){
             String name = cursor.getString(cursor.getColumnIndex("NAME"));
             int image_resource = cursor.getInt(cursor.getColumnIndex("IMAGE_RESOURCE_ID"));
@@ -37,9 +38,12 @@ public class DatabaseAdapter {
                 uri = Uri.parse(uriString);
             String labelName = cursor.getString(cursor.getColumnIndex("LABELNAME"));
             int id = cursor.getInt(cursor.getColumnIndex("_id"));
-            int classId=-1;
+            int classId=0;
             for (int i = 0; i < classNames.size(); i++) {
-                if (classNames.get(i).equalsIgnoreCase(labelName)) {
+                String nameClass = classNames.get(i);
+                Log.e("labelName", labelName );
+                if (nameClass.equalsIgnoreCase(labelName)) {
+                    Log.e("entered", "here" );
                     classId = i;
                 }
             }
