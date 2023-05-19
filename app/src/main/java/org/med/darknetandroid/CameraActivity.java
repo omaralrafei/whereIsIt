@@ -81,7 +81,9 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
             mOpenCvCameraView = findViewById(R.id.CameraView);
             mOpenCvCameraView.setVisibility(CameraBridgeViewBase.VISIBLE);
             mOpenCvCameraView.setCvCameraViewListener(this);
-            classNames = readLabels("custom.names", this);
+            //classNames = readLabels("custom.names", this);
+            classNames = readLabelsAssets("labels.txt", this);
+            classNames = readLabelsAssets("myLabels.txt", this);
             Bundle bundle = getIntent().getExtras();
             labelName = bundle.getString("labelName");
             for (int i = 0; i < classNames.size(); i++)
@@ -107,12 +109,15 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
     @Override
     public void onCameraViewStarted(int width, int height) {
 
-        String modelConfiguration = getAssetsFile("yolov3-tiny.cfg", this);
-        String modelWeights = getAssetsFile("yolov3-tiny.weights", this);
+        String modelConfiguration = getAssetsFile("yolov3-tiny_best.cfg", this);
+        String modelWeights = getAssetsFile("yolov3-tiny_best.weights", this);
 
-//        String modelConfiguration = getFilesDir().toString()+"/yolov4-tiny-custom.cfg";
-//        String modelWeights = getFilesDir().toString()+"/yolov4-tiny-custom_best.weights";
+//        String modelConfiguration = getAssetsFile("yolov4-tiny.cfg", this);
+//        String modelWeights = getAssetsFile("yolov4-tiny.weights", this);
+//        String modelConfiguration = getFilesDir().toString()+"/yolov4-tiny.cfg";
+//        String modelWeights = getFilesDir().toString()+"/yolov4-tiny.weights";
         net = Dnn.readNetFromDarknet(modelConfiguration, modelWeights);
+//        net = Dnn.readNet(modelConfiguration, modelWeights);
     }
 
 
@@ -139,7 +144,7 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         List<String> outBlobNames = net.getUnconnectedOutLayersNames();
 
         net.forward(result, outBlobNames);
-        float confThreshold = 0.2f;
+        float confThreshold = 0.4f;
 
         for (int i = 0; i < result.size(); ++i) {
             // each row is a candidate detection, the 1st 4 numbers are
@@ -228,6 +233,35 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
             File labelFile = new File(context.getFilesDir().toString(), file);
             FileInputStream fileInputStream = new FileInputStream(labelFile);
             inputStream = new BufferedInputStream(fileInputStream);
+            byte[] data = new byte[inputStream.available()];
+            inputStream.read(data);
+            inputStream.close();
+            // Create copy file in storage.
+            File outFile = new File(context.getFilesDir().toString(), file);
+            FileOutputStream os = new FileOutputStream(outFile);
+            os.write(data);
+            os.close();
+            Scanner fileScanner = new Scanner(new File(outFile.getAbsolutePath())).useDelimiter("\n");
+            String label;
+            while (fileScanner.hasNext()) {
+                label = fileScanner.next().split("\n")[0];
+                labelsArray.add(label);
+            }
+            fileScanner.close();
+        } catch (IOException ex) {
+            Log.e(TAG, "Failed to read labels!");
+        }
+        return labelsArray;
+    }
+
+    public static List<String> readLabelsAssets (String file, Context context)
+    {
+        AssetManager assetManager = context.getAssets();
+        BufferedInputStream inputStream;
+        List<String> labelsArray = new ArrayList<>();
+        try {
+            // Read data from assets.
+            inputStream = new BufferedInputStream(assetManager.open(file));
             byte[] data = new byte[inputStream.available()];
             inputStream.read(data);
             inputStream.close();

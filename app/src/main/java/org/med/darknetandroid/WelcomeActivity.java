@@ -69,8 +69,8 @@ public class WelcomeActivity extends AppCompatActivity {
         } else if (requestCode == 0){
 
             new DownloadFileFromURL(this).execute(labelsPath);
-            new DownloadFileFromURL(this).execute(weightsPath);
-            new DownloadFileFromURL(this).execute(cfgPath);
+            //new DownloadFileFromURL(this).execute(weightsPath);
+            //new DownloadFileFromURL(this).execute(cfgPath);
         }
     }
 
@@ -80,8 +80,8 @@ public class WelcomeActivity extends AppCompatActivity {
         if (grantResults.length > 1){
             if(grantResults[0] == PERMISSION_GRANTED && grantResults[1] == PERMISSION_GRANTED && requestCode == 0) {
                 new DownloadFileFromURL(this).execute(labelsPath);
-                new DownloadFileFromURL(this).execute(weightsPath);
-                new DownloadFileFromURL(this).execute(cfgPath);
+                //new DownloadFileFromURL(this).execute(weightsPath);
+                //new DownloadFileFromURL(this).execute(cfgPath);
             }
         }
 
