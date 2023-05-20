@@ -51,7 +51,6 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
         MyAdapter adapter = new MyAdapter(this, itemsList, listView, this);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(this);
-
     }
 
     @Override

@@ -10,18 +10,19 @@
         android:id="@+id/add_item_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/add_item_text"
         android:textSize="25sp"
+        android:layout_centerHorizontal="true"
         android:padding="10dp" />
     <EditText
         android:id="@+id/item_name_edit_text"
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:inputType="text"
-        android:textSize="20sp"
+        android:textAlignment="center"
+        android:textSize="25sp"
         android:autofillHints="Name of Item"
-        android:layout_toEndOf="@+id/add_item_text_view"
-        android:hint="@string/add_item_text"/>
+        android:layout_centerHorizontal="true"
+        android:hint="Insert Item Name"/>
     <Button
         android:id="@+id/add_item_add_button"
         android:layout_width="wrap_content"
@@ -29,39 +30,37 @@
         android:text="@string/add_photo"
         android:layout_below="@+id/item_name_edit_text"
         android:layout_marginTop="20dp"
-        android:layout_centerHorizontal="true"/>
-
-    <ListView
-        android:id="@+id/add_item_list_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:clipToPadding="true"
-        android:layout_below="@+id/add_item_add_button"
-        android:layout_above="@+id/submit_button"
-        android:layout_marginVertical="10dp"
-        />
-
-<!--    <ImageView-->
-<!--        android:id="@+id/add_item_image_view"-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_centerInParent="true"/>-->
+        android:layout_marginEnd="15dp"
+        android:textSize="20sp"
+        android:layout_alignParentEnd="true"/>
     <Button
         android:id="@+id/add_item_submit_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/submit"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="40dp"
-        android:layout_alignParentBottom="true"
-        android:textSize="25sp"/>
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/item_name_edit_text"
+        android:layout_marginEnd="5dp"
+        android:textSize="20sp"
+        android:layout_marginTop="20dp"/>
     <Button
         android:id="@+id/add_item_cancel_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Cancel"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="40dp"
-        android:layout_alignParentBottom="true"
-        android:textSize="25sp"/>
+        android:layout_marginStart="15dp"
+        android:layout_marginTop="20dp"
+        android:layout_below="@+id/item_name_edit_text"
+        android:textSize="20sp"/>
+
+    <ListView
+        android:id="@+id/add_item_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="true"
+        android:layout_below="@+id/add_item_cancel_button"
+        android:layout_marginVertical="10dp"
+        />
+
 </RelativeLayout>
