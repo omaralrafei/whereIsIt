@@ -48,12 +48,7 @@ public class WelcomeActivity extends AppCompatActivity {
         TextView textView = findViewById(R.id.welcome_loading);
         textView.setText("Downloading resources");
         splash.setImageResource(R.drawable.loading);
-//        Bundle error = getIntent().getExtras();
-//        if(error != null && error.getBoolean("error", false)){
-//            textView.setText("Failed to download resources, Check your internet connection");
-//            splash.setImageResource(R.drawable.error);
-//        }else{
-//          }
+
         checkPermissions(0);
     }
 
@@ -111,9 +106,9 @@ public class WelcomeActivity extends AppCompatActivity {
      * Background Async Task to download file
      * */
 
+    @SuppressLint("StaticFieldLeak")
     public class DownloadFileFromURL extends AsyncTask<String, String, String> {
 
-        @SuppressLint("StaticFieldLeak")
         Activity activity;
         public DownloadFileFromURL(Activity activity){
             this.activity = activity;
@@ -144,7 +139,7 @@ public class WelcomeActivity extends AppCompatActivity {
                 OutputStream output = new FileOutputStream(getFilesDir().toString()
                         + "/" +fileName);
 
-                byte data[] = new byte[1024];
+                byte[] data = new byte[1024];
 
                 long total = 0;
 

@@ -1,7 +1,9 @@
 package org.med.darknetandroid;
 
+import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -46,7 +48,9 @@ import static android.content.ContentValues.TAG;
 public class AddItemActivity extends AppCompatActivity {
 
     ActivityResultLauncher<String> mGetContent;
+    ActivityResultLauncher<Intent> coordinates;
     List<Items> itemsList = new ArrayList<>();
+    List<ImageData> itemsImageData = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,9 +116,23 @@ public class AddItemActivity extends AppCompatActivity {
 
         for (int i = 0; i < itemsList.size(); i++) {
             Items item = itemsList.get(i);
+            ImageData imageData = itemsImageData.get(i);
             parts.add(prepareFilePart("uploadImages", item.getUri()));
             RequestBody nameLabel = createPartFromString(item.getLabelName());
+            RequestBody xBegin = createPartFromString(String.valueOf(imageData.getxBegin()));
+            RequestBody yBegin = createPartFromString(String.valueOf(imageData.getyBegin()));
+            RequestBody xEnd = createPartFromString(String.valueOf(imageData.getxEnd()));
+            RequestBody yEnd = createPartFromString(String.valueOf(imageData.yEnd));
+            RequestBody width = createPartFromString(String.valueOf(imageData.getWidth()));
+            RequestBody height = createPartFromString(String.valueOf(imageData.height));
+
             map.put("nameLabel",nameLabel);
+            map.put("yBegin", yBegin);
+            map.put("xBegin", xBegin);
+            map.put("xEnd", xEnd);
+            map.put("yEnd", yEnd);
+            map.put("width", width);
+            map.put("height", height);
         }
         // finally, execute the request
         Call<ResponseBody> call = uploadAPIs.uploadMultipleImages(map, parts);
@@ -126,7 +144,7 @@ public class AddItemActivity extends AppCompatActivity {
                 Items itemSelected = itemsList.get(0);
                 ItemsSQLiteOpenHelper.insertItem(db, itemSelected.getName(), -1, itemSelected.getLabelName(), -1, itemSelected.getUri().toString()); //Change the last two arguments
                 Toast.makeText(AddItemActivity.this, "Item uploaded!", Toast.LENGTH_SHORT).show();
-                Intent welcome = new Intent(AddItemActivity.this, WelcomeActivity.class);
+                Intent welcome = new Intent(AddItemActivity.this, ItemsActivity.class);
                 startActivity(welcome);
                 finish();
             }
@@ -152,7 +170,7 @@ public class AddItemActivity extends AppCompatActivity {
         // https://github.com/iPaulPro/aFileChooser/blob/master/aFileChooser/src/com/ipaulpro/afilechooser/utils/FileUtils.java
         // use the FileUtils to get the actual file by uri
 
-        File file = new File(fileUri.toString());
+        File file = new File(fileUri.toString().substring(5));
         String fileType = getMimeType(file.toString());
 
         // create RequestBody instance from file
@@ -172,7 +190,7 @@ public class AddItemActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         try {
             UCrop.getOutputImageWidth(data);
@@ -185,17 +203,33 @@ public class AddItemActivity extends AppCompatActivity {
         if(requestCode == UCrop.REQUEST_CROP){
             final Uri resultUri = UCrop.getOutput(data);
 
-            int randomNumber = new Random().nextInt(10000);
-            @SuppressLint("DefaultLocale") String randomNumberString = String.format("%04d", randomNumber);
-            EditText itemNameEditText = findViewById(R.id.item_name_edit_text);
-            String itemName = itemNameEditText.getText().toString();
-            String nameLabel = itemName + randomNumberString;
-            Items item = new Items(itemName, 0, nameLabel, -1, resultUri);
-            itemsList.add(item);
+            coordinates = registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    new ActivityResultCallback<ActivityResult>() {
+                        @Override
+                        public void onActivityResult(ActivityResult result) {
+                            // Add same code that you want to add in onActivityResult method
+                                Intent resultData = result.getData();
+                                int randomNumber = new Random().nextInt(10000);
+                                @SuppressLint("DefaultLocale") String randomNumberString = String.format("%04d", randomNumber);
+                                EditText itemNameEditText = findViewById(R.id.item_name_edit_text);
+                                String itemName = itemNameEditText.getText().toString();
+                                String nameLabel = itemName + randomNumberString;
+                                Items item = new Items(itemName, 0, nameLabel, -1, resultUri);
 
-            ListView listView = findViewById(R.id.add_item_list_view);
-            AddItemAdapter adapter = new AddItemAdapter(this, itemsList, listView, this);
-            listView.setAdapter(adapter);
+                                ImageData imageData = new ImageData(resultData.getIntExtra("xBegin", 0), resultData.getIntExtra("yBegin", 0)
+                                        , resultData.getIntExtra("xEnd", 0), resultData.getIntExtra("yEnd", 0),
+                                        UCrop.getOutputImageHeight(data), UCrop.getOutputImageWidth(data));
+                                itemsImageData.add(imageData);
+                                itemsList.add(item);
+                                ListView listView = findViewById(R.id.add_item_list_view);
+                                AddItemAdapter adapter = new AddItemAdapter(AddItemActivity.this, itemsList, listView, AddItemActivity.this);
+                                listView.setAdapter(adapter);
+                        }
+                    });
+            final Intent intent = new Intent(AddItemActivity.this, BoundingBoxActivity.class);
+            intent.putExtra("path", resultUri.toString());
+            coordinates.launch(intent);
 
         } else if (resultCode == UCrop.RESULT_ERROR) {
             final Throwable cropError = UCrop.getError(data);
