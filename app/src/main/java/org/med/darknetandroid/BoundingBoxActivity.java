@@ -8,10 +8,13 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import org.opencv.core.Mat;
 
 public class BoundingBoxActivity extends AppCompatActivity {
     Bitmap mainBitmap;
@@ -34,8 +37,17 @@ public class BoundingBoxActivity extends AppCompatActivity {
         itemImage = findViewById(R.id.bounding_imageview);
         itemImage.setBackground(new BitmapDrawable(myContext.getResources(),mainBitmap));
 
-        imageHeight = itemImage.getLayoutParams().height;
-        imageWidth = itemImage.getLayoutParams().width;
+        ViewTreeObserver vto = itemImage.getViewTreeObserver();
+        vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            public boolean onPreDraw() {
+                itemImage.getViewTreeObserver().removeOnPreDrawListener(this);
+                imageHeight = itemImage.getMeasuredHeight();
+                imageWidth = itemImage.getMeasuredWidth();
+                itemImage.setImageHeight(imageHeight);
+                itemImage.setImageWidth(imageWidth);
+                return true;
+            }
+        });
 
         Button cancelButton = findViewById(R.id.bounding_cancel_button);
         cancelButton.setOnClickListener(new View.OnClickListener() {
@@ -72,27 +84,20 @@ public class BoundingBoxActivity extends AppCompatActivity {
 
                     float boundingNormalizedHeight = boundingHeight/imageHeight;
                     float boundingNormalizedWidth = boundingWidth/imageWidth;
-                    float normalizedCenterX = (boundingCenterX+ boundingWidth/2)/imageWidth;
-                    float normalizedCentery = (boundingCenterY+ boundingHeight/2)/imageHeight;
+                    float normalizedCenterX = (Math.min(xBeginCoord,xEndCoord)+ boundingWidth/2)/imageWidth;
+                    float normalizedCenterY = (Math.min(xEndCoord, yEndCoord)+ boundingHeight/2)/imageHeight;
 
-                    Log.e("Image without Norm: ", "imageHeight: "+ imageHeight + "\nimageWidth: " + imageWidth);
-
-                    Log.e("Normalization: ", "boundingNormalizedHeight: "+ boundingNormalizedHeight + "\nboundingNormalizedWidth: " + boundingNormalizedWidth +
-                            "\nnormalizedCenterX" + normalizedCenterX + "\nnormalizedCentery" + normalizedCentery);
-                    Log.e("Bounding without Norm: ", "boundingHeight: "+ boundingHeight + "\nboundingWidth: " + boundingWidth +
-                            "\nboundingCenterX" + normalizedCenterX + "\nboundingCenterY" + normalizedCentery);
-
-//                    if(Math.abs(xBeginCoord - xEndCoord) >= 20 || Math.abs(yBeginCoord - yEndCoord) >= 20){
-//                        Intent data = new Intent();
-//                        data.putExtra("normalizedHeight", boundingNormalizedHeight);
-//                        data.putExtra("normalizedWidth", boundingNormalizedWidth);
-//                        data.putExtra("normalizedCenterX", normalizedCenterX);
-//                        data.putExtra("normalizedCentery", normalizedCentery);
-//                        setResult(RESULT_OK, data);
-//                        finish();
-//                    }else{
-//                        Toast.makeText(myContext, "Rectangle too small, please draw again", Toast.LENGTH_SHORT).show();
-//                    }
+                    if(Math.abs(xBeginCoord - xEndCoord) >= 20 || Math.abs(yBeginCoord - yEndCoord) >= 20){
+                        Intent data = new Intent();
+                        data.putExtra("normalizedHeight", boundingNormalizedHeight);
+                        data.putExtra("normalizedWidth", boundingNormalizedWidth);
+                        data.putExtra("normalizedCenterX", normalizedCenterX);
+                        data.putExtra("normalizedCenterY", normalizedCenterY);
+                        setResult(RESULT_OK, data);
+                        finish();
+                    }else{
+                        Toast.makeText(myContext, "Rectangle too small, please draw again", Toast.LENGTH_SHORT).show();
+                    }
                 } else{
                     Toast.makeText(myContext, "No Rectangle Drawn!", Toast.LENGTH_SHORT).show();
                 }

@@ -119,20 +119,16 @@ public class AddItemActivity extends AppCompatActivity {
             ImageData imageData = itemsImageData.get(i);
             parts.add(prepareFilePart("uploadImages", item.getUri()));
             RequestBody nameLabel = createPartFromString(item.getLabelName());
-            RequestBody xBegin = createPartFromString(String.valueOf(imageData.getxBegin()));
-            RequestBody yBegin = createPartFromString(String.valueOf(imageData.getyBegin()));
-            RequestBody xEnd = createPartFromString(String.valueOf(imageData.getxEnd()));
-            RequestBody yEnd = createPartFromString(String.valueOf(imageData.yEnd));
-            RequestBody width = createPartFromString(String.valueOf(imageData.getWidth()));
-            RequestBody height = createPartFromString(String.valueOf(imageData.height));
+            RequestBody normalizedWidth = createPartFromString(String.valueOf(imageData.getNormalizedWidth()));
+            RequestBody normalizedHeight = createPartFromString(String.valueOf(imageData.getNormalizedHeight()));
+            RequestBody normalizedCenterX = createPartFromString(String.valueOf(imageData.getNormalizedCenterX()));
+            RequestBody normalizedCenterY = createPartFromString(String.valueOf(imageData.getNormalizedCenterY()));
 
             map.put("nameLabel",nameLabel);
-            map.put("yBegin", yBegin);
-            map.put("xBegin", xBegin);
-            map.put("xEnd", xEnd);
-            map.put("yEnd", yEnd);
-            map.put("width", width);
-            map.put("height", height);
+            map.put("normalizedHeight", normalizedHeight);
+            map.put("normalizedWidth", normalizedWidth);
+            map.put("normalizedCenterX", normalizedCenterX);
+            map.put("normalizedCenterY", normalizedCenterY);
         }
         // finally, execute the request
         Call<ResponseBody> call = uploadAPIs.uploadMultipleImages(map, parts);
@@ -217,9 +213,8 @@ public class AddItemActivity extends AppCompatActivity {
                                 String nameLabel = itemName + randomNumberString;
                                 Items item = new Items(itemName, 0, nameLabel, -1, resultUri);
 
-                                ImageData imageData = new ImageData(resultData.getIntExtra("xBegin", 0), resultData.getIntExtra("yBegin", 0)
-                                        , resultData.getIntExtra("xEnd", 0), resultData.getIntExtra("yEnd", 0),
-                                        UCrop.getOutputImageHeight(data), UCrop.getOutputImageWidth(data));
+                                ImageData imageData = new ImageData(resultData.getFloatExtra("normalizedHeight", 0), resultData.getFloatExtra("normalizedWidth", 0)
+                                        , resultData.getFloatExtra("normalizedCenterX", 0), resultData.getFloatExtra("normalizedCenterY", 0));
                                 itemsImageData.add(imageData);
                                 itemsList.add(item);
                                 ListView listView = findViewById(R.id.add_item_list_view);
@@ -235,15 +230,5 @@ public class AddItemActivity extends AppCompatActivity {
             final Throwable cropError = UCrop.getError(data);
             Log.e(TAG, cropError.getMessage());
         }
-//        if (requestCode==3)
-//        {
-//            Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
-//            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-//            File destination = new File(this.getExternalCacheDir(),"temp.jpg");
-//            new AndroidBmpUtil().save(thumbnail, destination.toString());
-//            String dest_uri = new StringBuilder(UUID.randomUUID().toString()).append(".jpg").toString();
-//            Uri destinationFileUri = Uri.fromFile(new File(getCacheDir(),dest_uri));
-//            UCrop.of(Uri.fromFile(destination), destinationFileUri).withAspectRatio(1,1).start(this);
-//        }
     }
 }

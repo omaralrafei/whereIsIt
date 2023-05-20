@@ -19,7 +19,16 @@ public class CanvasView extends androidx.appcompat.widget.AppCompatImageView { /
     Paint mPaint;
     Canvas passCanvas;
     boolean drawn = false;
+    int imageHeight;
+    int imageWidth;
 
+    public void setImageHeight(int imageHeight) {
+        this.imageHeight = imageHeight;
+    }
+
+    public void setImageWidth(int imageWidth) {
+        this.imageWidth = imageWidth;
+    }
 
     public CanvasView(Context context) {
         super(context);
@@ -67,10 +76,17 @@ public class CanvasView extends androidx.appcompat.widget.AppCompatImageView { /
                 break;
 
             case MotionEvent.ACTION_MOVE:
+                if (event.getY() > imageHeight){
+                    endCoordinate.y = imageHeight-5;
+                }
+                else if(event.getY() <=0){
+                    endCoordinate.y = 5;
+                } else {
+                    endCoordinate.y = event.getY();
+                }
                 endCoordinate.x = event.getX();
-                endCoordinate.y = event.getY();
                 onDraw(passCanvas = new Canvas());
-                invalidate(); // Tell View that the canvas needs to be redrawn
+                invalidate();
                 break;
 
             case MotionEvent.ACTION_UP:
