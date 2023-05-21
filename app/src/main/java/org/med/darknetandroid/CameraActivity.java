@@ -82,8 +82,8 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
             mOpenCvCameraView.setVisibility(CameraBridgeViewBase.VISIBLE);
             mOpenCvCameraView.setCvCameraViewListener(this);
             //classNames = readLabels("custom.names", this);
-            classNames = readLabelsAssets("labels.txt", this);
-            classNames = readLabelsAssets("myLabels.txt", this);
+            classNames = readLabels("labels.txt", this);
+            //classNames = readLabelsAssets("myLabels.txt", this);
             Bundle bundle = getIntent().getExtras();
             labelName = bundle.getString("labelName");
             for (int i = 0; i < classNames.size(); i++)
@@ -108,16 +108,9 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
 
     @Override
     public void onCameraViewStarted(int width, int height) {
-
-        String modelConfiguration = getAssetsFile("yolov3-tiny_best.cfg", this);
-        String modelWeights = getAssetsFile("yolov3-tiny_best.weights", this);
-
-//        String modelConfiguration = getAssetsFile("yolov4-tiny.cfg", this);
-//        String modelWeights = getAssetsFile("yolov4-tiny.weights", this);
-//        String modelConfiguration = getFilesDir().toString()+"/yolov4-tiny.cfg";
-//        String modelWeights = getFilesDir().toString()+"/yolov4-tiny.weights";
+        String modelConfiguration = getFilesDir().toString()+"/yolov3-tiny.cfg";
+        String modelWeights = getFilesDir().toString()+"/yolov3-tiny.weights";
         net = Dnn.readNetFromDarknet(modelConfiguration, modelWeights);
-//        net = Dnn.readNet(modelConfiguration, modelWeights);
     }
 
 
@@ -137,7 +130,6 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         Scalar mean = new Scalar(127.5);
 
         Mat blob = Dnn.blobFromImage(frame, 1.0 / 255.0, frame_size, mean, true, false);
-        //save_mat(blob);
         net.setInput(blob);
 
         List<Mat> result = new ArrayList<>();

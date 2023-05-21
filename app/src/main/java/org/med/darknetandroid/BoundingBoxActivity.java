@@ -53,7 +53,7 @@ public class BoundingBoxActivity extends AppCompatActivity {
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                setResult(RESULT_CANCELED, null);
             }
         });
 
@@ -75,8 +75,6 @@ public class BoundingBoxActivity extends AppCompatActivity {
                     float xEndCoord = itemImage.getEndX();
                     float yEndCoord = itemImage.getEndY();
 
-//                    int imageHeight = itemImage.getLayoutParams().height;
-//                    int imageWidth = itemImage.getLayoutParams().width;
                     float boundingHeight =  Math.abs(yBeginCoord - yEndCoord);
                     float boundingWidth = Math.abs(xBeginCoord - xEndCoord);
                     float boundingCenterX = boundingWidth/2;
@@ -84,10 +82,10 @@ public class BoundingBoxActivity extends AppCompatActivity {
 
                     float boundingNormalizedHeight = boundingHeight/imageHeight;
                     float boundingNormalizedWidth = boundingWidth/imageWidth;
-                    float normalizedCenterX = (Math.min(xBeginCoord,xEndCoord)+ boundingWidth/2)/imageWidth;
-                    float normalizedCenterY = (Math.min(xEndCoord, yEndCoord)+ boundingHeight/2)/imageHeight;
+                    float normalizedCenterX = (Math.min(xBeginCoord,xEndCoord)+ boundingCenterX)/imageWidth;
+                    float normalizedCenterY = (Math.min(xEndCoord, yEndCoord)+ boundingCenterY)/imageHeight;
 
-                    if(Math.abs(xBeginCoord - xEndCoord) >= 20 || Math.abs(yBeginCoord - yEndCoord) >= 20){
+                    if(Math.abs(xBeginCoord - xEndCoord) >= 50 || Math.abs(yBeginCoord - yEndCoord) >= 50){
                         Intent data = new Intent();
                         data.putExtra("normalizedHeight", boundingNormalizedHeight);
                         data.putExtra("normalizedWidth", boundingNormalizedWidth);

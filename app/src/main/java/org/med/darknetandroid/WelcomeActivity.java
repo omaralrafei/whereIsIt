@@ -1,42 +1,41 @@
 package org.med.darknetandroid;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentTransaction;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
-import java.net.URLConnection;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import static androidx.core.content.PermissionChecker.PERMISSION_GRANTED;
 
 public class WelcomeActivity extends AppCompatActivity {
 
-    String labelsPath = NetworkClient.baseUrl+ "custom.names";
-    String cfgPath = NetworkClient.baseUrl+ "yolov4-tiny-custom.cfg";
-    String weightsPath = NetworkClient.baseUrl+ "yolov4-tiny-custom_best.weights";
+    String labelsPath = NetworkClient.baseUrl+ "labels";
+    String cfgPath = NetworkClient.baseUrl+ "cfg";
+    String weightsPath = NetworkClient.baseUrl+ "weights";
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -62,10 +61,7 @@ public class WelcomeActivity extends AppCompatActivity {
         if (permissionCheck != PackageManager.PERMISSION_GRANTED || permissionCheckStorage!= PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, requestCode);
         } else if (requestCode == 0){
-
             new DownloadFileFromURL(this).execute(labelsPath);
-            //new DownloadFileFromURL(this).execute(weightsPath);
-            //new DownloadFileFromURL(this).execute(cfgPath);
         }
     }
 
@@ -75,8 +71,6 @@ public class WelcomeActivity extends AppCompatActivity {
         if (grantResults.length > 1){
             if(grantResults[0] == PERMISSION_GRANTED && grantResults[1] == PERMISSION_GRANTED && requestCode == 0) {
                 new DownloadFileFromURL(this).execute(labelsPath);
-                //new DownloadFileFromURL(this).execute(weightsPath);
-                //new DownloadFileFromURL(this).execute(cfgPath);
             }
         }
 
@@ -110,8 +104,36 @@ public class WelcomeActivity extends AppCompatActivity {
     public class DownloadFileFromURL extends AsyncTask<String, String, String> {
 
         Activity activity;
+        int total = 0;
         public DownloadFileFromURL(Activity activity){
             this.activity = activity;
+        }
+
+        public void downloadFile(String fileUrl) throws IOException {
+            OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
+            Request request = new Request.Builder()
+                    .url(fileUrl)
+                    .build();
+            Log.e("download file", "after builder");
+
+            String fileName = fileUrl.split("/")[3];
+            Response response = okHttpClient.newCall(request).execute();
+
+            InputStream is = response.body().byteStream();
+
+            BufferedInputStream input = new BufferedInputStream(is);
+            OutputStream output = new FileOutputStream(getFilesDir().toString() + "/" + fileName +".txt");
+
+            int count;
+            byte[] data = new byte[1024];
+
+            while ((count = input.read(data)) != -1) {
+                output.write(data, 0, count);
+            }
+
+            output.flush();
+            output.close();
+            input.close();
         }
 
         /**
@@ -119,57 +141,26 @@ public class WelcomeActivity extends AppCompatActivity {
          * */
         @Override
         protected String doInBackground(String... f_url) {
-            int count;
+
             String fileName = f_url[0].split("/")[3];
-            try {
-                URL url = new URL(f_url[0]);
-                URLConnection connection = url.openConnection();
-                Log.e("hang", "doInBackground: ");
-                connection.connect();
+            try{
 
-                // this will be useful so that you can show a tipical 0-100%
-                // progress bar
-                int lengthOfFile = connection.getContentLength();
-
-                // download the file
-                InputStream input = new BufferedInputStream(url.openStream(),
-                        8192);
-
-                // Output stream
-                OutputStream output = new FileOutputStream(getFilesDir().toString()
-                        + "/" +fileName);
-
-                byte[] data = new byte[1024];
-
-                long total = 0;
-
-                while ((count = input.read(data)) != -1) {
-                    total += count;
-                    // publishing the progress....
-                    // After this onProgressUpdate will be called
-                    publishProgress("" + (int) ((total * 100) / lengthOfFile));
-
-                    // writing data to file
-                    output.write(data, 0, count);
-                }
-
-                // flushing output
-                output.flush();
-
-                // closing streams
-                output.close();
-                input.close();
-
-                if(fileName.equalsIgnoreCase("custom.names") && activity.getClass().getSimpleName().equalsIgnoreCase("WelcomeActivity")){
+                downloadFile(f_url[0]);
+                Log.i("upload", "1 File Uploaded");
+                downloadFile(weightsPath);
+                Log.i("upload", "2 Files Uploaded");
+                downloadFile(cfgPath);
+                if(fileName.equalsIgnoreCase("labels") && activity.getClass().getSimpleName().equalsIgnoreCase("WelcomeActivity")){
                     Intent welcome = new Intent(activity, ItemsActivity.class);
                     activity.startActivity(welcome);
                     activity.finish();
                 }
-                Log.i("upload", "1 File Uploaded");
+                Log.i("upload", "3 Files Uploaded");
 
-            } catch (Exception e) {
-                Log.e("Error: ", e.getMessage());
-                if(fileName.equalsIgnoreCase("custom.names")) {
+            } catch ( IOException e) {
+                e.printStackTrace();
+                Log.e("Error", "doInBackground: ioexception");
+                if(fileName.equalsIgnoreCase("labels")) {
                     Intent welcome = new Intent(activity, ErrorActivity.class);
                     welcome.putExtra("error", true);
                     activity.startActivity(welcome);

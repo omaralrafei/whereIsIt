@@ -95,7 +95,7 @@ public class CanvasView extends androidx.appcompat.widget.AppCompatImageView { /
                     public void run(){
                         onDraw(passCanvas);
                         drawRectangle = false; // Stop drawing the rectangle
-                        Log.e("Coordinates", "xBeginCoord: "+getBeginX()+"\nyBeginCoord: "+getBeginY()+"\nxEndCoord: "+getEndX()+"\nyEndCoord: " +getEndY() );
+                        Log.e("Coordinates", "image Height:"+ imageHeight +"\nimage width: "+imageWidth+"\nxBeginCoord: "+getBeginX()+"\nyBeginCoord: "+getBeginY()+"\nxEndCoord: "+getEndX()+"\nyEndCoord: " +getEndY() );
                     }
                 }, 200);
 

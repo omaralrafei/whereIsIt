@@ -34,6 +34,11 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
         setContentView(R.layout.activity_items);
         ListView listView = findViewById(R.id.items_listView);
         Button addItem = findViewById(R.id.add_item);
+        Button trainButton = findViewById(R.id.items_train_button);
+
+        trainButton.setVisibility(View.INVISIBLE);
+        trainButton.setEnabled(false);
+
         addItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -42,6 +47,11 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
                 finish();
             }
         });
+
+        if(getIntent().getBooleanExtra("train", false)){
+            trainButton.setVisibility(View.VISIBLE);
+            trainButton.setEnabled(true);
+        }
 
         SQLiteOpenHelper sqLiteOpenHelper = new ItemsSQLiteOpenHelper(this);
         SQLiteDatabase db = sqLiteOpenHelper.getReadableDatabase();

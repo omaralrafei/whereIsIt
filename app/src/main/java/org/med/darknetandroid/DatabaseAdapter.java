@@ -28,7 +28,7 @@ public class DatabaseAdapter {
     public List<Items> getAllItems(){
         Cursor cursor = db.query("ITEMS", null, null, null, null, null, null);
 
-        classNames = CameraActivity.readLabels("custom.names", this.context);
+        classNames = CameraActivity.readLabels("labels.txt", this.context);
         while(cursor.moveToNext()){
             String name = cursor.getString(cursor.getColumnIndex("NAME"));
             int image_resource = cursor.getInt(cursor.getColumnIndex("IMAGE_RESOURCE_ID"));

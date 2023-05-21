@@ -25,6 +25,7 @@ import android.widget.Toast;
 import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -131,16 +132,12 @@ public class AddItemActivity extends AppCompatActivity {
         for (int i = 0; i < itemsList.size(); i++) {
             Items item = itemsList.get(i);
             ImageData imageData = itemsImageData.get(i);
-            parts.add(prepareFilePart("uploadImages", item.getUri()));
-            RequestBody normalizedWidth = createPartFromString(String.valueOf(imageData.getNormalizedWidth()));
-            RequestBody normalizedHeight = createPartFromString(String.valueOf(imageData.getNormalizedHeight()));
-            RequestBody normalizedCenterX = createPartFromString(String.valueOf(imageData.getNormalizedCenterX()));
-            RequestBody normalizedCenterY = createPartFromString(String.valueOf(imageData.getNormalizedCenterY()));
+            parts.add(prepareFilePart("uploadedImages", item.getUri()));
+            File currentFile = new File(item.getUri().toString().substring(5));
+            String partString = imageData.getNormalizedWidth()+"_" + imageData.getNormalizedHeight()+"_" + imageData.getNormalizedCenterX()+"_" + imageData.getNormalizedCenterY();
+            RequestBody partBody = createPartFromString(partString);
 
-            map.put("normalizedHeight", normalizedHeight);
-            map.put("normalizedWidth", normalizedWidth);
-            map.put("normalizedCenterX", normalizedCenterX);
-            map.put("normalizedCenterY", normalizedCenterY);
+            map.put(currentFile.getName(), partBody);
         }
         RequestBody nameLabel = createPartFromString(itemsList.get(0).getLabelName());
         map.put("nameLabel",nameLabel);
@@ -151,15 +148,23 @@ public class AddItemActivity extends AppCompatActivity {
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                Log.e(TAG, response.message());
-                final SQLiteOpenHelper sqLiteOpenHelper = new ItemsSQLiteOpenHelper(getApplicationContext());
-                final SQLiteDatabase db = sqLiteOpenHelper.getReadableDatabase();
-                Items itemSelected = itemsList.get(0);
-                ItemsSQLiteOpenHelper.insertItem(db, itemSelected.getName(), -1, itemSelected.getLabelName(), -1, itemSelected.getUri().toString()); //Change the last two arguments
-                Toast.makeText(AddItemActivity.this, "Item uploaded!", Toast.LENGTH_SHORT).show();
-                Intent welcome = new Intent(AddItemActivity.this, ItemsActivity.class);
-                startActivity(welcome);
-                finish();
+                if(response.errorBody() != null){
+                    try {
+                        Log.e("OnResponse", response.errorBody().string() );
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }else{
+                    final SQLiteOpenHelper sqLiteOpenHelper = new ItemsSQLiteOpenHelper(getApplicationContext());
+                    final SQLiteDatabase db = sqLiteOpenHelper.getReadableDatabase();
+                    Items itemSelected = itemsList.get(0);
+                    ItemsSQLiteOpenHelper.insertItem(db, itemSelected.getName(), -1, itemSelected.getLabelName(), -1, itemSelected.getUri().toString()); //Change the last two arguments
+                    Toast.makeText(AddItemActivity.this, "Item uploaded!", Toast.LENGTH_SHORT).show();
+                    Intent itemsIntent = new Intent(AddItemActivity.this, ItemsActivity.class);
+                    itemsIntent.putExtra("train", true);
+                    startActivity(itemsIntent);
+                    finish();
+                }
             }
 
             @Override
@@ -179,11 +184,10 @@ public class AddItemActivity extends AppCompatActivity {
                 okhttp3.MultipartBody.FORM, descriptionString);
     }
 
-    //This method
+    //This method takes a partName and Uri of the image to be uploaded and converts that image into a requestBody from the file.
+    //Then, returns a MultiPartBody.Part representing the image with the part name and file name.
     @NonNull
     private MultipartBody.Part prepareFilePart(String partName, Uri fileUri) {
-        // https://github.com/iPaulPro/aFileChooser/blob/master/aFileChooser/src/com/ipaulpro/afilechooser/utils/FileUtils.java
-        // use the FileUtils to get the actual file by uri
 
         File file = new File(fileUri.toString().substring(5));
         String fileType = getMimeType(file.toString());
@@ -195,6 +199,7 @@ public class AddItemActivity extends AppCompatActivity {
         return MultipartBody.Part.createFormData(partName, file.getName(), requestFile);
     }
 
+    //This method is used to identify a files mime type, it is used in prepareFilePart method
     public static String getMimeType(String url) {
         String type = null;
         String extension = MimeTypeMap.getFileExtensionFromUrl(url);
@@ -204,48 +209,62 @@ public class AddItemActivity extends AppCompatActivity {
         return type;
     }
 
+
+    //This method handles the result of activities, in this case, it handles the result taken from the UCrop activity which returns the Uri of the cropped image
+    //Then, after that image is received, this method opens another activity (BoundingBoxActivity) and waits for its result which is the bounding box of the item
+    //normalized for later use in the training of the YOLO model
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         try {
             UCrop.getOutputImageWidth(data);
         }catch (Exception e) {
-//            Intent intent = new Intent(AddItemActivity.this, WelcomeActivity.class);
-//            startActivity(intent);
-//            AddItemActivity.this.finish();
-//            return;
-            Toast.makeText(this, "Process Interrupted, please add an image", Toast.LENGTH_SHORT).show();
+            if(itemsList.size() == 0){
+                final EditText nameEditText = findViewById(R.id.item_name_edit_text);
+                TextView textView = findViewById(R.id.add_item_text_view);
+                //Re-enabling the edit text so that a change can be done
+                nameEditText.setEnabled(true);
+                nameEditText.setVisibility(View.VISIBLE);
+                textView.setEnabled(false);
+                textView.setVisibility(View.INVISIBLE);
+                Toast.makeText(this, "Process Interrupted", Toast.LENGTH_SHORT).show();
+            } else{
+                Toast.makeText(this, "Process Interrupted, please add an image", Toast.LENGTH_SHORT).show();
+            }
         }
-        if(requestCode == UCrop.REQUEST_CROP){
+        if(requestCode == UCrop.REQUEST_CROP && resultCode == RESULT_OK){
             final Uri resultUri = UCrop.getOutput(data);
 
             coordinates = registerForActivityResult(
-                    new ActivityResultContracts.StartActivityForResult(),
-                    new ActivityResultCallback<ActivityResult>() {
-                        @Override
-                        public void onActivityResult(ActivityResult result) {
+                new ActivityResultContracts.StartActivityForResult(),
+                new ActivityResultCallback<ActivityResult>() {
+                    @Override
+                    public void onActivityResult(ActivityResult result) {
+                        if (result.getResultCode() != RESULT_CANCELED) {
                             // Add same code that you want to add in onActivityResult method
-                                Intent resultData = result.getData();
-                                int randomNumber = new Random().nextInt(10000);
-                                @SuppressLint("DefaultLocale") String randomNumberString = String.format("%04d", randomNumber);
-                                EditText itemNameEditText = findViewById(R.id.item_name_edit_text);
-                                String itemName = itemNameEditText.getText().toString();
-                                String nameLabel = itemName + randomNumberString;
-                                Items item = new Items(itemName, 0, nameLabel, -1, resultUri);
+                            Intent resultData = result.getData();
+                            int randomNumber = new Random().nextInt(10000);
+                            @SuppressLint("DefaultLocale") String randomNumberString = String.format("%04d", randomNumber);
+                            EditText itemNameEditText = findViewById(R.id.item_name_edit_text);
+                            String itemName = itemNameEditText.getText().toString();
+                            String nameLabel = itemName + randomNumberString;
+                            Items item = new Items(itemName, 0, nameLabel, -1, resultUri);
 
-                                ImageData imageData = new ImageData(resultData.getFloatExtra("normalizedHeight", 0), resultData.getFloatExtra("normalizedWidth", 0)
-                                        , resultData.getFloatExtra("normalizedCenterX", 0), resultData.getFloatExtra("normalizedCenterY", 0));
-                                itemsImageData.add(imageData);
-                                itemsList.add(item);
-                                ListView listView = findViewById(R.id.add_item_list_view);
-                                AddItemAdapter adapter = new AddItemAdapter(AddItemActivity.this, itemsList, listView, AddItemActivity.this);
-                                listView.setAdapter(adapter);
+                            ImageData imageData = new ImageData(resultData.getFloatExtra("normalizedHeight", 0), resultData.getFloatExtra("normalizedWidth", 0)
+                                    , resultData.getFloatExtra("normalizedCenterX", 0), resultData.getFloatExtra("normalizedCenterY", 0));
+                            itemsImageData.add(imageData);
+                            itemsList.add(item);
+                            ListView listView = findViewById(R.id.add_item_list_view);
+                            AddItemAdapter adapter = new AddItemAdapter(AddItemActivity.this, itemsList, listView, AddItemActivity.this);
+                            listView.setAdapter(adapter);
+                        }else{
+                            Toast.makeText(AddItemActivity.this, "Cancelled!", Toast.LENGTH_SHORT).show();
                         }
-                    });
+                    }
+                });
             final Intent intent = new Intent(AddItemActivity.this, BoundingBoxActivity.class);
             intent.putExtra("path", resultUri.toString());
             coordinates.launch(intent);
-
         } else if (resultCode == UCrop.RESULT_ERROR) {
             final Throwable cropError = UCrop.getError(data);
             Log.e(TAG, cropError.getMessage());

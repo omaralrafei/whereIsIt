@@ -14,6 +14,6 @@ import retrofit2.http.PartMap;
 
 public interface UploadAPIs {
     @Multipart
-    @POST("upload")
+    @POST("uploadImages")
     Call<ResponseBody> uploadMultipleImages(@PartMap Map<String, RequestBody> map, @Part List<MultipartBody.Part> file);
 }

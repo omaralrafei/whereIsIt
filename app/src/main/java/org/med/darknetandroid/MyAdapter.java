@@ -20,7 +20,6 @@ public class MyAdapter extends BaseAdapter {
     private Context context;
     List<Items> itemsList;
     ListView listView;
-//    final AdapterView.OnItemClickListener onClickListener = new MyOnClickListener();
     Activity fragment;
 
 
@@ -83,23 +82,4 @@ public class MyAdapter extends BaseAdapter {
             status = view.findViewById(R.id.item_status);
         }
     }
-
-
-//    public class MyOnClickListener implements AdapterView.OnItemClickListener{
-//        @Override
-//        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-//            int itemPosition = adapterView.getSelectedItemPosition();
-//            int item = itemsList.get(itemPosition).getId();
-//
-//            listener.changeFragment(itemPosition, item);
-//        }
-//    }
-//    private customClickListener listener;
-//    public void setCustomClickListener(customClickListener listener) {
-//        this.listener = listener;
-//    }
-//
-//    public interface customClickListener{
-//        void changeFragment(int itemPosition, int item);
-//    }
 }

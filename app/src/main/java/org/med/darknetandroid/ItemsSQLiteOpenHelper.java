@@ -25,13 +25,7 @@ public class ItemsSQLiteOpenHelper extends SQLiteOpenHelper {
                 "CLASS_ID INTEGER," +
                 "URI TEXT," +
                 "LABELNAME TEXT)");
-
-
-//        insertItem(db, "My Remote", R.drawable.remote1,"My Remote5231782Omar7126354", -1, "");
-//        insertItem(db, "My laptop", R.drawable.laptop1, "My laptop134543Omar12323423", -1, "");
-//        insertItem(db, "My phone", R.drawable.phone1, "My phone2983647813Omar81637842", -1, "");
-//        insertItem(db, "My Keys", R.drawable.key1, "My Keys1283741234Omar19827321", -1, "");
-        insertItem(db, "laptop", R.drawable.laptop2, "laptop2134", -1, "");
+        insertItem(db, "laptop", R.drawable.laptop2, "laptop", -1, "");
     }
 
     @Override
