@@ -2,6 +2,7 @@ package org.med.darknetandroid;
 
 import android.net.Uri;
 
+//This class represents the items and their variables
 public class Items {
     private String name;
     private int imageResource;

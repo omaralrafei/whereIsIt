@@ -11,6 +11,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 
+//This class is a custom imageView so that you can draw a rectangle on it
 public class CanvasView extends androidx.appcompat.widget.AppCompatImageView { // or some other View-based class
     boolean drawRectangle = false;
     PointF beginCoordinate = new PointF();
@@ -30,6 +31,7 @@ public class CanvasView extends androidx.appcompat.widget.AppCompatImageView { /
         this.imageWidth = imageWidth;
     }
 
+    //setting up the paint in which we will use to draw
     public CanvasView(Context context) {
         super(context);
         this.drawContext=context;
@@ -44,6 +46,7 @@ public class CanvasView extends androidx.appcompat.widget.AppCompatImageView { /
         passCanvas = new Canvas();
     }
 
+    //initializing another constructor
     public CanvasView(Context context, AttributeSet attrs) {
         super(context, attrs);
         this.drawContext=context;
@@ -58,10 +61,10 @@ public class CanvasView extends androidx.appcompat.widget.AppCompatImageView { /
         passCanvas = new Canvas();
     }
 
+    //handle touch events and extract the position of the rectangle in the canvas
     @SuppressLint({"ClickableViewAccessibility", "WrongCall"})
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        //return super.onTouchEvent(event);
         switch (event.getAction())
         {
             case MotionEvent.ACTION_DOWN:
@@ -90,12 +93,11 @@ public class CanvasView extends androidx.appcompat.widget.AppCompatImageView { /
                 break;
 
             case MotionEvent.ACTION_UP:
-                // Do something with the beginCoordinate and endCoordinate, like creating the 'final' object
+                //This handler creates a delay to not spontaneously make the rectangle disappear
                 new Handler().postDelayed(new Runnable(){
                     public void run(){
                         onDraw(passCanvas);
                         drawRectangle = false; // Stop drawing the rectangle
-                        Log.e("Coordinates", "image Height:"+ imageHeight +"\nimage width: "+imageWidth+"\nxBeginCoord: "+getBeginX()+"\nyBeginCoord: "+getBeginY()+"\nxEndCoord: "+getEndX()+"\nyEndCoord: " +getEndY() );
                     }
                 }, 200);
 
@@ -103,6 +105,7 @@ public class CanvasView extends androidx.appcompat.widget.AppCompatImageView { /
         }
         return true;
     }
+    //This method handles the drawing of the image
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);

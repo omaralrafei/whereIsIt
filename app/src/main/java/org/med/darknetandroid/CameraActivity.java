@@ -47,6 +47,7 @@ import org.opencv.imgproc.Imgproc;
 import static androidx.core.content.PermissionChecker.PERMISSION_GRANTED;
 
 
+// This activity is responsible for the callbacks to the javaCamera which implements the Dnn for YOLO to work on
 public class CameraActivity extends AppCompatActivity implements CvCameraViewListener2 {
     private static final String TAG = "CameraActivity";
     private static List<String> classNames = new ArrayList<>();
@@ -74,6 +75,7 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
     };
 
 
+    //this method initializes the labels and gets the labelName to recognize the object
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,7 +83,6 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
             mOpenCvCameraView = findViewById(R.id.CameraView);
             mOpenCvCameraView.setVisibility(CameraBridgeViewBase.VISIBLE);
             mOpenCvCameraView.setCvCameraViewListener(this);
-            //classNames = readLabels("custom.names", this);
             classNames = readLabels("labels.txt", this);
             //classNames = readLabelsAssets("myLabels.txt", this);
             Bundle bundle = getIntent().getExtras();
@@ -106,11 +107,18 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
 
 
 
+    //this method gets the file for the model config as well as its weights
     @Override
     public void onCameraViewStarted(int width, int height) {
         String modelConfiguration = getFilesDir().toString()+"/yolov3-tiny.cfg";
-        String modelWeights = getFilesDir().toString()+"/yolov3-tiny.weights";
-        net = Dnn.readNetFromDarknet(modelConfiguration, modelWeights);
+        String modelWeights = getFilesDir().toString()+"/yolov3-tiny_best.weights";
+//        String modelConfiguration = getAssetsFile("/yolov3-tiny.cfg", CameraActivity.this);
+//        String modelWeights = getAssetsFile("/yolov3-tiny.cfg", CameraActivity.this);
+        try {
+            net = Dnn.readNetFromDarknet(modelConfiguration, modelWeights);
+        } catch (Exception e){
+            Toast.makeText(this, "Network Connection issue!", Toast.LENGTH_SHORT).show();
+        }
     }
 
 
@@ -121,6 +129,7 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
 
 
 
+    //This is the matrix on which it is divided to detect objects
     @Override
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 
@@ -130,7 +139,12 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         Scalar mean = new Scalar(127.5);
 
         Mat blob = Dnn.blobFromImage(frame, 1.0 / 255.0, frame_size, mean, true, false);
-        net.setInput(blob);
+        try{
+            net.setInput(blob);
+        }catch (Exception e){
+            Toast.makeText(this, "Network Connection issue!", Toast.LENGTH_SHORT).show();
+        }
+
 
         List<Mat> result = new ArrayList<>();
         List<String> outBlobNames = net.getUnconnectedOutLayersNames();
@@ -191,6 +205,7 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         //super.onBackPressed();
     }
 
+    //This function extracts assets from the assets folder of android studio and copies them into the filesDir
     private static String getAssetsFile(String file, Context context) {
         AssetManager assetManager = context.getAssets();
         BufferedInputStream inputStream;
@@ -215,9 +230,9 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
 
 
 
+    //this method reads the labels from a file in the device
     public static List<String> readLabels (String file, Context context)
     {
-        AssetManager assetManager = context.getAssets();
         BufferedInputStream inputStream;
         List<String> labelsArray = new ArrayList<>();
         try {

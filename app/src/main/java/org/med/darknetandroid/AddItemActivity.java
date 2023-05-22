@@ -8,6 +8,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -47,15 +49,15 @@ public class AddItemActivity extends AppCompatActivity {
 
     ActivityResultLauncher<String> croppedImageResult;
     ActivityResultLauncher<Intent> coordinates;
-    List<Items> itemsList = new ArrayList<>();
+    public static List<Items> itemsList = new ArrayList<>();
     List<ImageData> itemsImageData = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_item);
         //Creating references for the views to be used
-        Button addItemButton = findViewById(R.id.add_item_add_button);
-        Button submitButton = findViewById(R.id.add_item_submit_button);
+        final Button addItemButton = findViewById(R.id.add_item_add_button);
+        final Button submitButton = findViewById(R.id.add_item_submit_button);
         Button cancelButton = findViewById(R.id.add_item_cancel_button);
         final EditText nameEditText = findViewById(R.id.item_name_edit_text);
         TextView textView = findViewById(R.id.add_item_text_view);
@@ -99,6 +101,10 @@ public class AddItemActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (itemsList.size() > 0){
+                    submitButton.setEnabled(false);
+                    submitButton.setClickable(false);
+                    addItemButton.setClickable(false);
+                    addItemButton.setEnabled(false);
                     uploadImages();
                 }else
                 {
@@ -111,11 +117,18 @@ public class AddItemActivity extends AppCompatActivity {
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent welcome = new Intent(AddItemActivity.this, WelcomeActivity.class);
+                Intent welcome = new Intent(AddItemActivity.this, ItemsActivity.class);
                 startActivity(welcome);
                 finish();
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent welcome = new Intent(this, ItemsActivity.class);
+        startActivity(welcome);
+        finish();
     }
 
 
@@ -173,8 +186,6 @@ public class AddItemActivity extends AppCompatActivity {
                 Toast.makeText(AddItemActivity.this, "Failed to upload item! Try again", Toast.LENGTH_SHORT).show();
             }
         });
-
-
     }
 
     //This method converts a string to a Retrofit part to be sent later
@@ -269,5 +280,20 @@ public class AddItemActivity extends AppCompatActivity {
             final Throwable cropError = UCrop.getError(data);
             Log.e(TAG, cropError.getMessage());
         }
+    }
+
+    public static void Refresh(Context context, Activity activity){
+        if(itemsList.size() <= 0){
+            final EditText nameEditText = activity.findViewById(R.id.item_name_edit_text);
+            TextView textView = activity.findViewById(R.id.add_item_text_view);
+            //Disabling the text view as it is not needed at first
+            nameEditText.setEnabled(true);
+            nameEditText.setVisibility(View.VISIBLE);
+            textView.setEnabled(false);
+            textView.setVisibility(View.INVISIBLE);
+        }
+        ListView listView = activity.findViewById(R.id.add_item_list_view);
+        AddItemAdapter adapter = new AddItemAdapter(context, itemsList, listView, activity);
+        listView.setAdapter(adapter);
     }
 }

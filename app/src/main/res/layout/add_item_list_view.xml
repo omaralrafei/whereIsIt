@@ -5,16 +5,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <androidx.cardview.widget.CardView
-        android:layout_width="150dp"
+        android:layout_width="250dp"
         android:layout_height="150dp"
         app:cardElevation="10dp"
+        android:layout_centerHorizontal="true"
         android:layout_marginVertical="10dp"
         android:layout_marginHorizontal="10dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         android:clickable="false">
 
         <RelativeLayout
@@ -22,9 +18,20 @@
             android:layout_height="match_parent">
             <ImageView
                 android:id="@+id/add_item_list_view_imageview"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_centerInParent="true"/>
+                android:layout_width="130dp"
+                android:layout_height="130dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="10dp"/>
+            <ImageButton
+                android:id="@+id/add_item_delete_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="20dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:src="@drawable/delete1"
+                android:background="@android:color/transparent"/>
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
 

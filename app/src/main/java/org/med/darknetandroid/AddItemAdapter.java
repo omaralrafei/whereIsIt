@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -13,6 +14,8 @@ import android.widget.TextView;
 
 import java.util.List;
 
+
+// This class' job is to create an adapter for the item to be added. This is made to view it in a listview
 public class AddItemAdapter extends BaseAdapter {
     private Context context;
     List<Items> itemsList;
@@ -43,6 +46,7 @@ public class AddItemAdapter extends BaseAdapter {
     }
 
 
+    //get the items and set their listener for the delete button as well as inflate the list view corresponding to them
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
         HolderView holderView;
@@ -53,8 +57,17 @@ public class AddItemAdapter extends BaseAdapter {
         }else{
             holderView = (AddItemAdapter.HolderView) convertView.getTag();
         }
-        Items item = itemsList.get(position);
+        final Items item = itemsList.get(position);
         holderView.imageView.setImageURI(item.getUri());
+        ImageButton deleteButton = convertView.findViewById(R.id.add_item_delete_button);
+        final View finalConvertView = convertView;
+        deleteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AddItemActivity.itemsList.remove(position);
+                AddItemActivity.Refresh(finalConvertView.getContext(), (Activity) finalConvertView.getContext());
+            }
+        });
         return convertView;
     }
 

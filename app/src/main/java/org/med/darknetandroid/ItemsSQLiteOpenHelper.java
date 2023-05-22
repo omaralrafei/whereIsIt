@@ -8,6 +8,7 @@ import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
+//This class handles the creation of the database and the insertion called by other classes
 public class ItemsSQLiteOpenHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "Items_database";
     private static final int DB_VERSION = 1;

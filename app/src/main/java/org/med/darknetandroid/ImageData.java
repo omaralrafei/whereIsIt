@@ -1,5 +1,6 @@
 package org.med.darknetandroid;
 
+//This class holds image data to later be used when inserting them in the post request for the images
 public class ImageData {
     float normalizedHeight;
     float normalizedWidth;

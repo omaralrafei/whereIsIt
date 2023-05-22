@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment;
 
 import java.util.List;
 
+//This adapter's functionality is to turn a listview into a container of cardviews so that the items are represented neatly
 public class MyAdapter extends BaseAdapter {
 
     private Context context;

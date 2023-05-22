@@ -12,6 +12,7 @@ import retrofit2.http.POST;
 import retrofit2.http.Part;
 import retrofit2.http.PartMap;
 
+//This class is the list of APIs where we only need one which is the one that is responsible for the sending of images and parameters through to the server
 public interface UploadAPIs {
     @Multipart
     @POST("uploadImages")

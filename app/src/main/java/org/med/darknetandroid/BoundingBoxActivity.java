@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import org.opencv.core.Mat;
 
+//This activity is where the rectangle drawing will occur for the bounding box, it is then normalized to be read by the YOLO model
 public class BoundingBoxActivity extends AppCompatActivity {
     Bitmap mainBitmap;
     Context myContext;
@@ -66,6 +67,7 @@ public class BoundingBoxActivity extends AppCompatActivity {
         });
 
         Button submitButton = findViewById(R.id.bounding_submit_button);
+        //Here the coordinates are converted into the bounding box normalized values
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -83,7 +85,7 @@ public class BoundingBoxActivity extends AppCompatActivity {
                     float boundingNormalizedHeight = boundingHeight/imageHeight;
                     float boundingNormalizedWidth = boundingWidth/imageWidth;
                     float normalizedCenterX = (Math.min(xBeginCoord,xEndCoord)+ boundingCenterX)/imageWidth;
-                    float normalizedCenterY = (Math.min(xEndCoord, yEndCoord)+ boundingCenterY)/imageHeight;
+                    float normalizedCenterY = (Math.min(yBeginCoord, yEndCoord)+ boundingCenterY)/imageHeight;
 
                     if(Math.abs(xBeginCoord - xEndCoord) >= 50 || Math.abs(yBeginCoord - yEndCoord) >= 50){
                         Intent data = new Intent();

@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+//This activity displays an error message in case of error response
 public class ErrorActivity extends AppCompatActivity {
 
     @Override

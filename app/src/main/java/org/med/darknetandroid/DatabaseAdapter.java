@@ -12,6 +12,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+//This class is a database adapter that converts values in the database to a List of Items
 public class DatabaseAdapter {
     SQLiteOpenHelper sqLiteOpenHelper;
     SQLiteDatabase db;
