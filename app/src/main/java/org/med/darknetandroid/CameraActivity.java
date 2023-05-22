@@ -112,12 +112,14 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
     public void onCameraViewStarted(int width, int height) {
         String modelConfiguration = getFilesDir().toString()+"/yolov3-tiny.cfg";
         String modelWeights = getFilesDir().toString()+"/yolov3-tiny_best.weights";
-//        String modelConfiguration = getAssetsFile("/yolov3-tiny.cfg", CameraActivity.this);
-//        String modelWeights = getAssetsFile("/yolov3-tiny.cfg", CameraActivity.this);
+        Log.e(TAG, modelConfiguration );
+        Log.e(TAG, modelWeights );
+//        String modelConfiguration = getAssetsFile("yolov3-tiny.cfg", CameraActivity.this);
+//        String modelWeights = getAssetsFile("yolov3-tiny_best.weights", CameraActivity.this);
         try {
             net = Dnn.readNetFromDarknet(modelConfiguration, modelWeights);
         } catch (Exception e){
-            Toast.makeText(this, "Network Connection issue!", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
         }
     }
 
@@ -139,10 +141,10 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         Scalar mean = new Scalar(127.5);
 
         Mat blob = Dnn.blobFromImage(frame, 1.0 / 255.0, frame_size, mean, true, false);
-        try{
+        if(net != null)
             net.setInput(blob);
-        }catch (Exception e){
-            Toast.makeText(this, "Network Connection issue!", Toast.LENGTH_SHORT).show();
+        else{
+            Log.e(TAG, "onCameraFrame: error on net.setInput blob" );
         }
 
 
@@ -199,7 +201,7 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
     public void onBackPressed() {
 //        if (mOpenCvCameraView != null)
 //            mOpenCvCameraView.disableView();
-        Intent welcome = new Intent(this, WelcomeActivity.class);
+        Intent welcome = new Intent(this, ItemsActivity.class);
         startActivity(welcome);
         finish();
         //super.onBackPressed();

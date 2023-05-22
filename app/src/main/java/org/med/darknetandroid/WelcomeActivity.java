@@ -79,10 +79,8 @@ public class WelcomeActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (grantResults[0] == RESULT_OK && grantResults[1] == RESULT_OK){
-            if(grantResults[0] == PERMISSION_GRANTED && grantResults[1] == PERMISSION_GRANTED && requestCode == 0) {
-                new DownloadFileFromURL(this).execute(labelsPath);
-            }
+        if(grantResults[0] == PERMISSION_GRANTED && grantResults[1] == PERMISSION_GRANTED && requestCode == 0) {
+            new DownloadFileFromURL(this).execute(labelsPath);
         }
         else
         {
@@ -133,13 +131,22 @@ public class WelcomeActivity extends AppCompatActivity {
             String fileName = fileUrl.split("/")[3];
             Response response = okHttpClient.newCall(request).execute();
 
-            InputStream is = response.body().byteStream();
+            ResponseBody rb = response.body();
+            InputStream is;
+            if(rb != null){
+                is = rb.byteStream();
+            }else{
+                Intent intent = new Intent(activity, ErrorActivity.class);
+                activity.startActivity(intent);
+                activity.finish();
+                return;
+            }
 
             BufferedInputStream input = new BufferedInputStream(is);
 
-            String outputName = activity.getFilesDir().toString() + "/" + fileName;
+            String outputName = activity.getFilesDir() + "/" + fileName;
             Log.e("File Name: ", outputName);
-            OutputStream output = new FileOutputStream(outputName);
+            FileOutputStream output = new FileOutputStream(outputName);
 
             int count;
             byte[] data = new byte[8192];

@@ -39,7 +39,7 @@ public class DatabaseAdapter {
                 uri = Uri.parse(uriString);
             String labelName = cursor.getString(cursor.getColumnIndex("LABELNAME"));
             int id = cursor.getInt(cursor.getColumnIndex("_id"));
-            int classId=0;
+            int classId=-1;
             for (int i = 0; i < classNames.size(); i++) {
                 String nameClass = classNames.get(i);
                 Log.e("labelName", labelName );

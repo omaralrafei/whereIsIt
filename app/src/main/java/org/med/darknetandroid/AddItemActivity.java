@@ -117,6 +117,7 @@ public class AddItemActivity extends AppCompatActivity {
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                itemsList = new ArrayList<>();
                 Intent welcome = new Intent(AddItemActivity.this, ItemsActivity.class);
                 startActivity(welcome);
                 finish();
@@ -126,6 +127,7 @@ public class AddItemActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        itemsList = new ArrayList<>();
         Intent welcome = new Intent(this, ItemsActivity.class);
         startActivity(welcome);
         finish();
@@ -183,6 +185,12 @@ public class AddItemActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 Log.e(TAG, t.getMessage(), t );
+                Button submitButton = findViewById(R.id.add_item_submit_button);
+                Button addItemButton = findViewById(R.id.add_item_add_button);
+                submitButton.setEnabled(true);
+                submitButton.setClickable(true);
+                addItemButton.setClickable(true);
+                addItemButton.setEnabled(true);
                 Toast.makeText(AddItemActivity.this, "Failed to upload item! Try again", Toast.LENGTH_SHORT).show();
             }
         });
