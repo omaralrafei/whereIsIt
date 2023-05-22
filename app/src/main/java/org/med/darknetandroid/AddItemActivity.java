@@ -294,7 +294,6 @@ public class AddItemActivity extends AppCompatActivity {
         if(itemsList.size() <= 0){
             final EditText nameEditText = activity.findViewById(R.id.item_name_edit_text);
             TextView textView = activity.findViewById(R.id.add_item_text_view);
-            //Disabling the text view as it is not needed at first
             nameEditText.setEnabled(true);
             nameEditText.setVisibility(View.VISIBLE);
             textView.setEnabled(false);

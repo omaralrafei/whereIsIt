@@ -141,18 +141,14 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         Scalar mean = new Scalar(127.5);
 
         Mat blob = Dnn.blobFromImage(frame, 1.0 / 255.0, frame_size, mean, true, false);
-        if(net != null)
-            net.setInput(blob);
-        else{
-            Log.e(TAG, "onCameraFrame: error on net.setInput blob" );
-        }
+        net.setInput(blob);
 
 
         List<Mat> result = new ArrayList<>();
         List<String> outBlobNames = net.getUnconnectedOutLayersNames();
 
         net.forward(result, outBlobNames);
-        float confThreshold = 0.4f;
+        float confThreshold = 0.2f;
 
         for (int i = 0; i < result.size(); ++i) {
             // each row is a candidate detection, the 1st 4 numbers are
@@ -165,7 +161,6 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
                 float confidence = (float) mm.maxVal;
                 Point classIdPoint = mm.maxLoc;
                 if (confidence > confThreshold) {
-
                     int centerX = (int) (row.get(0, 0)[0] * frame.cols());
                     int centerY = (int) (row.get(0, 1)[0] * frame.rows());
                     int width = (int) (row.get(0, 2)[0] * frame.cols());
@@ -186,11 +181,11 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
                     String label= classNames.get(class_id) + ": " + df.format(confidence);
                     Scalar color= colors.get(class_id);
 
-                    //if(ogLabel.equalsIgnoreCase(labelName)){
+                    if(ogLabel.equalsIgnoreCase(labelName)){
                         Imgproc.rectangle(frame, left_top,right_bottom , color, 3, 2);
                         Imgproc.putText(frame, label, label_left_top, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(0, 0, 0), 4);
                         Imgproc.putText(frame, label, label_left_top, Imgproc.FONT_HERSHEY_SIMPLEX, 1, new Scalar(255, 255, 255), 2);
-                    //}
+                    }
                 }
             }
         }

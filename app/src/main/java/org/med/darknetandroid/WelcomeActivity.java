@@ -36,6 +36,7 @@ import java.util.List;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
@@ -71,7 +72,9 @@ public class WelcomeActivity extends AppCompatActivity {
         if (permissionCheck != PackageManager.PERMISSION_GRANTED || permissionCheckStorage!= PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, requestCode);
         } else if (requestCode == 0){
-            new DownloadFileFromURL(this).execute(labelsPath);
+            Intent welcome = new Intent(this, WelcomeActivity.class);
+            startActivity(welcome);
+            finish();
         }
     }
 
@@ -91,8 +94,6 @@ public class WelcomeActivity extends AppCompatActivity {
         }
     }
 
-
-
     @Override
     public void onBackPressed() {
         if(getSupportFragmentManager().getBackStackEntryCount() == 1) {
@@ -103,18 +104,13 @@ public class WelcomeActivity extends AppCompatActivity {
         }
     }
 
-
-    /**
-     * Background Async Task to download file
-     * */
-
     // this class is made to download files such as the model config and weights file
-    @SuppressLint("StaticFieldLeak")
     public static class DownloadFileFromURL extends AsyncTask<String, String, String> {
 
         String labelsPath = NetworkClient.baseUrl+ "labels.txt";
         String cfgPath = NetworkClient.baseUrl+ "yolov3-tiny.cfg";
         String weightsPath = NetworkClient.baseUrl+ "yolov3-tiny_best.weights";
+        @SuppressLint("StaticFieldLeak")
         Activity activity;
         public DownloadFileFromURL(Activity activity){
             this.activity = activity;
@@ -126,7 +122,6 @@ public class WelcomeActivity extends AppCompatActivity {
             Request request = new Request.Builder()
                     .url(fileUrl)
                     .build();
-            Log.e("download file", "after builder");
 
             String fileName = fileUrl.split("/")[3];
             Response response = okHttpClient.newCall(request).execute();
@@ -145,11 +140,10 @@ public class WelcomeActivity extends AppCompatActivity {
             BufferedInputStream input = new BufferedInputStream(is);
 
             String outputName = activity.getFilesDir() + "/" + fileName;
-            Log.e("File Name: ", outputName);
             FileOutputStream output = new FileOutputStream(outputName);
 
             int count;
-            byte[] data = new byte[8192];
+            byte[] data = new byte[1024];
 
             while ((count = input.read(data)) != -1) {
                 output.write(data, 0, count);
@@ -170,29 +164,17 @@ public class WelcomeActivity extends AppCompatActivity {
                 downloadFile(cfgPath);
                 Log.i("download", "2 Files Downloaded");
                 downloadFile(weightsPath);
-
-                if(activity.getClass().getSimpleName().equalsIgnoreCase("WelcomeActivity")){
-                    Intent welcome = new Intent(activity, ItemsActivity.class);
-                    activity.startActivity(welcome);
-                    activity.finish();
-                }else if(activity.getClass().getSimpleName().equalsIgnoreCase("AddItemActivity")){
-                    SQLiteOpenHelper sqLiteOpenHelper = new ItemsSQLiteOpenHelper(activity);
-                    SQLiteDatabase db = sqLiteOpenHelper.getReadableDatabase();
-                    DatabaseAdapter databaseAdapter = new DatabaseAdapter(activity, sqLiteOpenHelper, db);
-                    List<Items> itemsList = databaseAdapter.getAllItems();
-                    ListView listView = activity.findViewById(R.id.items_listView);
-
-                    MyAdapter adapter = new MyAdapter(activity, itemsList, listView, activity);
-                    listView.setAdapter(adapter);
-                    listView.setOnItemClickListener((AdapterView.OnItemClickListener) activity);
-                }
                 Log.i("download", "3 Files Downloaded");
+
+                Intent welcome = new Intent(activity, ItemsActivity.class);
+                activity.startActivity(welcome);
+                activity.finish();
 
             } catch ( IOException e) {
                 e.printStackTrace();
-                Intent welcome = new Intent(activity, ErrorActivity.class);
-                welcome.putExtra("error", true);
-                activity.startActivity(welcome);
+                Intent error = new Intent(activity, ErrorActivity.class);
+                error.putExtra("error", true);
+                activity.startActivity(error);
                 activity.finish();
             }
             return null;

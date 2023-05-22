@@ -67,12 +67,14 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
         refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new WelcomeActivity.DownloadFileFromURL(ItemsActivity.this).execute();
+                Intent intent = new Intent(ItemsActivity.this,WelcomeActivity.class);
+                startActivity(intent);
+                finish();
             }
         });
 
-        trainButton.setVisibility(View.INVISIBLE);
-        trainButton.setEnabled(false);
+//        trainButton.setVisibility(View.INVISIBLE);
+//        trainButton.setEnabled(false);
 
         addItem.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -92,8 +94,12 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
             @Override
             public void handleMessage(Message message) {
                 if(message.what == 0){
+                    trainButton.setClickable(true);
+                    trainButton.setEnabled(true);
                     Toast.makeText(ItemsActivity.this, "Training the model", Toast.LENGTH_SHORT).show();
                 }else{
+                    trainButton.setClickable(true);
+                    trainButton.setEnabled(true);
                     Toast.makeText(ItemsActivity.this, "Sorry, model is currently training", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -104,7 +110,7 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
             public void onClick(View view) {
                 trainButton.setClickable(false);
                 trainButton.setEnabled(false);
-                new PostTrain(ItemsActivity.this).execute(NetworkClient.baseUrl + "/train");
+                new PostTrain(ItemsActivity.this).execute(NetworkClient.baseUrl + "train");
             }
         });
     }
@@ -143,8 +149,8 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
                     .build();
             try {
                 Response response = okHttpClient.newCall(request).execute();
-                String responseMessage = response.message();
-                return responseMessage.equalsIgnoreCase("Your objects are being trained");
+                response.close();
+                return response.code() == 200;
             }catch (IOException e){
                 e.printStackTrace();
                 return false;
@@ -154,11 +160,13 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
 
         @Override
         protected String doInBackground(String... f_url) {
+            Message message = new Message();
             if(trainCheck(f_url[0])){
-                toastHandler.obtainMessage(0);
+                message.what = 0;
             }else {
-                toastHandler.obtainMessage(1);
+                message.what = 1;
             }
+            toastHandler.sendMessage(message);
             return null;
         }
     }
