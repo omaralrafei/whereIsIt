@@ -1,42 +1,28 @@
 package org.med.darknetandroid;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.AdapterView;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.List;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
@@ -69,13 +55,25 @@ public class WelcomeActivity extends AppCompatActivity {
         int permissionCheckStorage = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
-
         if (permissionCheck != PackageManager.PERMISSION_GRANTED || permissionCheckStorage!= PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, requestCode);
         } else if (requestCode == 0){
-            Intent welcome = new Intent(this, WelcomeActivity.class);
-            startActivity(welcome);
-            finish();
+            //If the activity was launched to re-download resources, call downloadFileFromUrl
+            Bundle bundle = getIntent().getExtras();
+            if(bundle != null) {
+                if (bundle.getBoolean("refresh", false)) {
+                    new DownloadFileFromURL(this).execute();
+                }
+                else{
+                    Intent welcome = new Intent(this, ItemsActivity.class);
+                    startActivity(welcome);
+                    finish();
+                }
+            }else {
+                Intent welcome = new Intent(this, ItemsActivity.class);
+                startActivity(welcome);
+                finish();
+            }
         }
     }
 
@@ -108,7 +106,7 @@ public class WelcomeActivity extends AppCompatActivity {
         }
 
         //This is the method that is called when downloading resources
-        public boolean downloadFile(String fileUrl) throws IOException {
+        public void downloadFile(String fileUrl) throws IOException {
 
             //Create a new okHttpClient and read the contents using a buffer of size 1 KB and store them in files directory
             OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
@@ -138,14 +136,12 @@ public class WelcomeActivity extends AppCompatActivity {
             output.flush();
             output.close();
             input.close();
-            return response.code() == 200;
         }
 
         //download files (model config, model weights, and the labels)
         @Override
         protected String doInBackground(String... f_url) {
             try{
-
                 downloadFile(labelsPath);
                 Log.i("download", "1 File Downloaded");
                 downloadFile(cfgPath);

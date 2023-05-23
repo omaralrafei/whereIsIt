@@ -1,0 +1,6 @@
+classes= 0 
+train  = /home/omar/Downloads/darknet/data/train.txt 
+valid = /home/omar/Downloads/darknet/data/valid.txt 
+names =/home/omar/Downloads/darknet/custom_cfg/custom.names
+backup = /home/omar/Downloads/darknet/backup
+eval=coco

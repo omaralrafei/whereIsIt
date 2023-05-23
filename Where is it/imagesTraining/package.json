@@ -1,0 +1,30 @@
+{
+  "name": "imagetraining",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/omaralrafei/imagesTraining.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/omaralrafei/imagesTraining/issues"
+  },
+  "homepage": "https://github.com/omaralrafei/imagesTraining#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "fs": "^0.0.1-security",
+    "g": "^2.0.1",
+    "multer": "^1.4.5-lts.1",
+    "ngrok": "^5.0.0-beta.2",
+    "nodemon": "^2.0.22",
+    "path": "^0.12.7",
+    "uuid": "^9.0.0"
+  }
+}

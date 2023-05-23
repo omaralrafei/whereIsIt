@@ -61,6 +61,12 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
         DatabaseAdapter databaseAdapter = new DatabaseAdapter(this, sqLiteOpenHelper, db);
         itemsList = databaseAdapter.getAllItems();
 
+        //Disable training if there are no items
+        if(itemsList.size() ==0){
+            trainButton.setClickable(false);
+            trainButton.setEnabled(false);
+        }
+
         //Initializes adapter for the items to be displayed in the list
         MyAdapter adapter = new MyAdapter(this, itemsList, listView, this);
         listView.setAdapter(adapter);
@@ -71,6 +77,7 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(ItemsActivity.this,WelcomeActivity.class);
+                intent.putExtra("refresh", true);
                 startActivity(intent);
                 finish();
             }
@@ -118,18 +125,22 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
         selectedItem = item.getLabelName();
         setContentView(R.layout.activity_welcome);
 
-        int SPLASH_TIME = 3000;
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Intent welcome = new Intent(ItemsActivity.this, CameraActivity.class);
-                Bundle b = new Bundle();
-                b.putString("labelName", selectedItem);
-                welcome.putExtras(b);
-                startActivity(welcome);
-                finish();
-            }
-        },SPLASH_TIME);
+        if(item.getClassId() == -1){
+            Toast.makeText(this, "Model not trained on item", Toast.LENGTH_SHORT).show();
+        }else{
+            int SPLASH_TIME = 3000;
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Intent welcome = new Intent(ItemsActivity.this, CameraActivity.class);
+                    Bundle b = new Bundle();
+                    b.putString("labelName", selectedItem);
+                    welcome.putExtras(b);
+                    startActivity(welcome);
+                    finish();
+                }
+            },SPLASH_TIME);
+        }
     }
 
     //this class' function is to enable background processes to run, it is used for sending the POST method of training
