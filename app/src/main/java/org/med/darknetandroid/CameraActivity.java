@@ -1,27 +1,18 @@
 package org.med.darknetandroid;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
-import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.MediaStore;
 import android.util.Log;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,9 +22,7 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.android.Utils;
 import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
@@ -44,8 +33,6 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.imgproc.Imgproc;
 
-import static androidx.core.content.PermissionChecker.PERMISSION_GRANTED;
-
 
 // This activity is responsible for the callbacks to the javaCamera which implements the Dnn for YOLO to work on
 public class CameraActivity extends AppCompatActivity implements CvCameraViewListener2 {
@@ -53,18 +40,18 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
     private static List<String> classNames = new ArrayList<>();
     private static List<Scalar> colors=new ArrayList<>();
     private Net net;
-    private CameraBridgeViewBase mOpenCvCameraView;
+    private CameraBridgeViewBase openCvCameraView;
     private String labelName = "";
 
 
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+    private BaseLoaderCallback loaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS:
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
-                    mOpenCvCameraView.enableView();
+                    openCvCameraView.enableView();
                 } break;
                 default:
                 {
@@ -75,16 +62,15 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
     };
 
 
-    //this method initializes the labels and gets the labelName to recognize the object
+    //this method initializes the labels and the openCvCamera and gets the labelName to recognize the object
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_main);
-            mOpenCvCameraView = findViewById(R.id.CameraView);
-            mOpenCvCameraView.setVisibility(CameraBridgeViewBase.VISIBLE);
-            mOpenCvCameraView.setCvCameraViewListener(this);
-            classNames = readLabels("labels.txt", this);
-            //classNames = readLabelsAssets("myLabels.txt", this);
+            openCvCameraView = findViewById(R.id.CameraView);
+            openCvCameraView.setVisibility(CameraBridgeViewBase.VISIBLE);
+            openCvCameraView.setCvCameraViewListener(this);
+            classNames = readLabels(WelcomeActivity.labelsName, this);
             Bundle bundle = getIntent().getExtras();
             labelName = bundle.getString("labelName");
             for (int i = 0; i < classNames.size(); i++)
@@ -96,41 +82,23 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
     @Override
     public void onResume() {
         super.onResume();
+        //When resuming activity, check the opencv loader and if it is found, then connect
         if (!OpenCVLoader.initDebug()) {
-            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization");
-            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_4_0, this, mLoaderCallback);
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_4_0, this, loaderCallback);
         } else {
-            Log.d(TAG, "OpenCV library found inside package. Using it!");
-            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+            loaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
     }
 
 
 
-    //this method gets the file for the model config as well as its weights
+    //this method gets the file for the model config as well as its weights and reads the Dnn
     @Override
     public void onCameraViewStarted(int width, int height) {
-        String modelConfiguration = getFilesDir().toString()+"/yolov3-tiny.cfg";
-        String modelWeights = getFilesDir().toString()+"/yolov3-tiny_best.weights";
-        Log.e(TAG, modelConfiguration );
-        Log.e(TAG, modelWeights );
-//        String modelConfiguration = getAssetsFile("yolov3-tiny.cfg", CameraActivity.this);
-//        String modelWeights = getAssetsFile("yolov3-tiny_best.weights", CameraActivity.this);
-        try {
-            net = Dnn.readNetFromDarknet(modelConfiguration, modelWeights);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
+        String modelConfiguration = getFilesDir().toString()+"/"+ WelcomeActivity.cfgName;
+        String modelWeights = getFilesDir().toString()+"/" + WelcomeActivity.weightsName;
+        net = Dnn.readNetFromDarknet(modelConfiguration, modelWeights);
     }
-
-
-
-    @Override
-    public void onCameraViewStopped() {
-    }
-
-
-
     //This is the matrix on which it is divided to detect objects
     @Override
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
@@ -194,12 +162,9 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
 
     @Override
     public void onBackPressed() {
-//        if (mOpenCvCameraView != null)
-//            mOpenCvCameraView.disableView();
         Intent welcome = new Intent(this, ItemsActivity.class);
         startActivity(welcome);
         finish();
-        //super.onBackPressed();
     }
 
     //This function extracts assets from the assets folder of android studio and copies them into the filesDir
@@ -233,14 +198,14 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         BufferedInputStream inputStream;
         List<String> labelsArray = new ArrayList<>();
         try {
-            // Read data from assets.
+            // Read data from files directory
             File labelFile = new File(context.getFilesDir().toString(), file);
             FileInputStream fileInputStream = new FileInputStream(labelFile);
             inputStream = new BufferedInputStream(fileInputStream);
             byte[] data = new byte[inputStream.available()];
             inputStream.read(data);
             inputStream.close();
-            // Create copy file in storage.
+            // Create copy file and reads its contents to populate the List of strings to be returned
             File outFile = new File(context.getFilesDir().toString(), file);
             FileOutputStream os = new FileOutputStream(outFile);
             os.write(data);
@@ -258,37 +223,7 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         return labelsArray;
     }
 
-    public static List<String> readLabelsAssets (String file, Context context)
-    {
-        AssetManager assetManager = context.getAssets();
-        BufferedInputStream inputStream;
-        List<String> labelsArray = new ArrayList<>();
-        try {
-            // Read data from assets.
-            inputStream = new BufferedInputStream(assetManager.open(file));
-            byte[] data = new byte[inputStream.available()];
-            inputStream.read(data);
-            inputStream.close();
-            // Create copy file in storage.
-            File outFile = new File(context.getFilesDir().toString(), file);
-            FileOutputStream os = new FileOutputStream(outFile);
-            os.write(data);
-            os.close();
-            Scanner fileScanner = new Scanner(new File(outFile.getAbsolutePath())).useDelimiter("\n");
-            String label;
-            while (fileScanner.hasNext()) {
-                label = fileScanner.next().split("\n")[0];
-                labelsArray.add(label);
-            }
-            fileScanner.close();
-        } catch (IOException ex) {
-            Log.e(TAG, "Failed to read labels!");
-        }
-        return labelsArray;
-    }
-
-
-
+    //Choose a random color for the bounding box
     private Scalar randomColor() {
         Random random = new Random();
         int r = random.nextInt(255);
@@ -297,36 +232,14 @@ public class CameraActivity extends AppCompatActivity implements CvCameraViewLis
         return new Scalar(r,g,b);
     }
 
-
-
-//    private void save_mat(Mat mat)
-//    {
-//        String path = Environment.getExternalStorageDirectory().toString();
-//        OutputStream fOut = null;
-//        File file = new File(path, "screen.jpg"); // the File to save , append increasing numeric counter to prevent files from getting overwritten.
-//        try {
-//            Bitmap bmp = Bitmap.createBitmap(mat.width(),mat.height(), Bitmap.Config.ARGB_8888);
-//            Mat tmp = new Mat (mat.width(),mat.height(), CvType.CV_8UC1,new Scalar(4));
-//            Imgproc.cvtColor(mat, tmp, Imgproc.COLOR_RGB2BGRA);
-//            //Imgproc.cvtColor(seedsImage, tmp, Imgproc.COLOR_GRAY2RGBA, 4);
-//            Utils.matToBitmap(tmp, bmp);
-//            fOut = new FileOutputStream(file);
-//            bmp.compress(Bitmap.CompressFormat.JPEG, 85, fOut); // saving the Bitmap to a file compressed as a JPEG with 85% compression rate
-//            fOut.flush(); // Not really required
-//            fOut.close(); // do not forget to close the stream
-//            MediaStore.Images.Media.insertImage(getContentResolver(),file.getAbsolutePath(),file.getName(),file.getName());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//    }
-
-
+    @Override
+    public void onCameraViewStopped() {
+    }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mOpenCvCameraView != null)
-            mOpenCvCameraView.disableView();
+        if (openCvCameraView != null)
+            openCvCameraView.disableView();
     }
 }

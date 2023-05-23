@@ -55,15 +55,18 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
         final Button trainButton = findViewById(R.id.items_train_button);
         Button refreshButton = findViewById(R.id.items_refresh_button);
 
+        //Creates a SQLite OpenHelper instance to access the database and get all items
         SQLiteOpenHelper sqLiteOpenHelper = new ItemsSQLiteOpenHelper(this);
         SQLiteDatabase db = sqLiteOpenHelper.getReadableDatabase();
         DatabaseAdapter databaseAdapter = new DatabaseAdapter(this, sqLiteOpenHelper, db);
         itemsList = databaseAdapter.getAllItems();
 
+        //Initializes adapter for the items to be displayed in the list
         MyAdapter adapter = new MyAdapter(this, itemsList, listView, this);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(this);
 
+        //When this button is pressed, return to the welcome activity to re-download resources
         refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -73,9 +76,7 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
             }
         });
 
-//        trainButton.setVisibility(View.INVISIBLE);
-//        trainButton.setEnabled(false);
-
+        //When clicking on the add button, go to the activity of AddItemActivity
         addItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -85,11 +86,7 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
             }
         });
 
-        if(getIntent().getBooleanExtra("train", false)){
-            trainButton.setVisibility(View.VISIBLE);
-            trainButton.setEnabled(true);
-        }
-
+        //This is a handler to handle the background process where the post request for the training is made
         toastHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message message) {
@@ -105,16 +102,16 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
             }
         };
 
+        //Train the model when pressing this button
         trainButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                trainButton.setClickable(false);
-                trainButton.setEnabled(false);
                 new PostTrain(ItemsActivity.this).execute(NetworkClient.baseUrl + "train");
             }
         });
     }
 
+    //When clicking on any item, start the cameraActivity with the labelName as an extra to be later extracted for the detection of item
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
         Items item = itemsList.get(position);
@@ -135,36 +132,38 @@ public class ItemsActivity extends AppCompatActivity implements AdapterView.OnIt
         },SPLASH_TIME);
     }
 
+    //this class' function is to enable background processes to run, it is used for sending the POST method of training
     public static class PostTrain extends AsyncTask<String, String, String> {
         Activity activity;
         public PostTrain(Activity activity){
             this.activity = activity;
         }
 
-        public boolean trainCheck(String fileUrl) {
+        //This method sends the POST method and returns true if the response code is OK
+        public boolean trainCheck(String fileUrl) throws IOException {
             OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
             RequestBody body = RequestBody.create(null, new byte[0]);
             Request request = new Request.Builder().method("POST", body)
                     .url(fileUrl)
                     .build();
-            try {
                 Response response = okHttpClient.newCall(request).execute();
                 response.close();
                 return response.code() == 200;
-            }catch (IOException e){
-                e.printStackTrace();
-                return false;
-            }
         }
 
-
+        ///Send message to the handler to display a toast whether the model is being trained or if it was already training
         @Override
         protected String doInBackground(String... f_url) {
             Message message = new Message();
-            if(trainCheck(f_url[0])){
-                message.what = 0;
-            }else {
-                message.what = 1;
+            try {
+                if(trainCheck(f_url[0])){
+                    message.what = 0;
+                }else {
+                    message.what = 1;
+                }
+            } catch (IOException e) {
+                message.what=1;
+                e.printStackTrace();
             }
             toastHandler.sendMessage(message);
             return null;

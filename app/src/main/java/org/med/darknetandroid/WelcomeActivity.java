@@ -45,9 +45,10 @@ import static androidx.core.content.PermissionChecker.PERMISSION_GRANTED;
 // This activity is the one where the resources are downloaded as well as the welcoming activity
 public class WelcomeActivity extends AppCompatActivity {
 
-    String labelsPath = NetworkClient.baseUrl+ "labels";
+    public static String cfgName = "yolov3-tiny.cfg";
+    public static String labelsName = "labels.txt";
+    public static String weightsName = "yolov3-tiny_best.weights";
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,12 +79,12 @@ public class WelcomeActivity extends AppCompatActivity {
         }
     }
 
-    //when the permissions are returned
+    //when the permissions are returned, download the resources
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(grantResults[0] == PERMISSION_GRANTED && grantResults[1] == PERMISSION_GRANTED && requestCode == 0) {
-            new DownloadFileFromURL(this).execute(labelsPath);
+            new DownloadFileFromURL(this).execute();
         }
         else
         {
@@ -94,22 +95,12 @@ public class WelcomeActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        if(getSupportFragmentManager().getBackStackEntryCount() == 1) {
-            moveTaskToBack(false);
-        }
-        else {
-            super.onBackPressed();
-        }
-    }
-
     // this class is made to download files such as the model config and weights file
     public static class DownloadFileFromURL extends AsyncTask<String, String, String> {
 
-        String labelsPath = NetworkClient.baseUrl+ "labels.txt";
-        String cfgPath = NetworkClient.baseUrl+ "yolov3-tiny.cfg";
-        String weightsPath = NetworkClient.baseUrl+ "yolov3-tiny_best.weights";
+        String labelsPath = NetworkClient.baseUrl+ labelsName;
+        String cfgPath = NetworkClient.baseUrl+ cfgName;
+        String weightsPath = NetworkClient.baseUrl+ weightsName;
         @SuppressLint("StaticFieldLeak")
         Activity activity;
         public DownloadFileFromURL(Activity activity){
@@ -117,7 +108,9 @@ public class WelcomeActivity extends AppCompatActivity {
         }
 
         //This is the method that is called when downloading resources
-        public void downloadFile(String fileUrl) throws IOException {
+        public boolean downloadFile(String fileUrl) throws IOException {
+
+            //Create a new okHttpClient and read the contents using a buffer of size 1 KB and store them in files directory
             OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
             Request request = new Request.Builder()
                     .url(fileUrl)
@@ -128,14 +121,7 @@ public class WelcomeActivity extends AppCompatActivity {
 
             ResponseBody rb = response.body();
             InputStream is;
-            if(rb != null){
-                is = rb.byteStream();
-            }else{
-                Intent intent = new Intent(activity, ErrorActivity.class);
-                activity.startActivity(intent);
-                activity.finish();
-                return;
-            }
+            is = rb.byteStream();
 
             BufferedInputStream input = new BufferedInputStream(is);
 
@@ -152,9 +138,10 @@ public class WelcomeActivity extends AppCompatActivity {
             output.flush();
             output.close();
             input.close();
+            return response.code() == 200;
         }
 
-        //download file asynchronously (model config, model weights, and the labels
+        //download files (model config, model weights, and the labels)
         @Override
         protected String doInBackground(String... f_url) {
             try{
@@ -169,7 +156,6 @@ public class WelcomeActivity extends AppCompatActivity {
                 Intent welcome = new Intent(activity, ItemsActivity.class);
                 activity.startActivity(welcome);
                 activity.finish();
-
             } catch ( IOException e) {
                 e.printStackTrace();
                 Intent error = new Intent(activity, ErrorActivity.class);

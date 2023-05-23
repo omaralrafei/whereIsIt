@@ -28,7 +28,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".BoundingBoxActivity"></activity>
+        <activity android:name=".BoundingBoxActivity" />
         <activity android:name=".ErrorActivity" />
         <activity android:name=".AddItemActivity" />
         <activity android:name=".ItemsActivity" />
@@ -41,7 +41,7 @@
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
             android:name=".WelcomeActivity"
-            android:screenOrientation="portrait"> <!-- Screen orientation -->
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

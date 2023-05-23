@@ -26,9 +26,9 @@ public class DatabaseAdapter {
         this.context = context;
     }
 
+    //This method gets all the items from the database and assigns the classID value to match the ones in the labels file
     public List<Items> getAllItems(){
         Cursor cursor = db.query("ITEMS", null, null, null, null, null, null);
-
         classNames = CameraActivity.readLabels("labels.txt", this.context);
         while(cursor.moveToNext()){
             String name = cursor.getString(cursor.getColumnIndex("NAME"));
@@ -42,18 +42,12 @@ public class DatabaseAdapter {
             int classId=-1;
             for (int i = 0; i < classNames.size(); i++) {
                 String nameClass = classNames.get(i);
-                Log.e("labelName", labelName );
                 if (nameClass.equalsIgnoreCase(labelName)) {
-                    Log.e("entered", "here" );
                     classId = i;
                 }
             }
-            if(classId == -1)
-                classId = cursor.getInt(cursor.getColumnIndex("CLASS_ID"));
-
             Items instrument = new Items(id, name, image_resource, labelName, classId, uri);
             itemsList.add(instrument);
-
         }
         cursor.close();
         return itemsList;

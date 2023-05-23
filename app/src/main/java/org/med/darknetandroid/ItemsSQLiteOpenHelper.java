@@ -8,7 +8,7 @@ import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
-//This class handles the creation of the database and the insertion called by other classes
+//This class handles the creation of the database and the insertion method called by other classes
 public class ItemsSQLiteOpenHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "Items_database";
     private static final int DB_VERSION = 1;
@@ -23,10 +23,8 @@ public class ItemsSQLiteOpenHelper extends SQLiteOpenHelper {
                 "_id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "NAME TEXT," +
                 "IMAGE_RESOURCE_ID INTEGER," +
-                "CLASS_ID INTEGER," +
                 "URI TEXT," +
                 "LABELNAME TEXT)");
-        insertItem(db, "laptop", R.drawable.laptop2, "laptop", -1, "");
     }
 
     @Override
@@ -34,11 +32,10 @@ public class ItemsSQLiteOpenHelper extends SQLiteOpenHelper {
 
     }
 
-    public static void insertItem(SQLiteDatabase db, String name, int imageId, String labelName, int classId, String uri){
+    public static void insertItem(SQLiteDatabase db, String name, int imageId, String labelName, String uri){
         ContentValues contentValues = new ContentValues();
         contentValues.put("NAME", name);
         contentValues.put("IMAGE_RESOURCE_ID", imageId);
-        contentValues.put("CLASS_ID", classId);
         contentValues.put("LABELNAME", labelName);
         contentValues.put("URI", uri);
         db.insert("ITEMS", null, contentValues);

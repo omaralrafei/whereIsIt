@@ -100,7 +100,6 @@ public class CanvasView extends androidx.appcompat.widget.AppCompatImageView { /
                         drawRectangle = false; // Stop drawing the rectangle
                     }
                 }, 200);
-
                 break;
         }
         return true;
@@ -122,7 +121,6 @@ public class CanvasView extends androidx.appcompat.widget.AppCompatImageView { /
     public boolean getDrawn(){
         return drawn;
     }
-
     public float getBeginX(){ return beginCoordinate.x; }
     public float getBeginY(){
         return beginCoordinate.y;

@@ -15,7 +15,7 @@ import android.widget.TextView;
 import java.util.List;
 
 
-// This class' job is to create an adapter for the item to be added. This is made to view it in a listview
+// This class' job is to create an adapter for the item to be added. This is made to organize these cards in a ListView
 public class AddItemAdapter extends BaseAdapter {
     private Context context;
     List<Items> itemsList;
@@ -46,7 +46,7 @@ public class AddItemAdapter extends BaseAdapter {
     }
 
 
-    //get the items and set their listener for the delete button as well as inflate the list view corresponding to them
+    //get the items and set their listener for the delete button as well as inflate the list view corresponding to every item
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
         HolderView holderView;
@@ -71,6 +71,7 @@ public class AddItemAdapter extends BaseAdapter {
         return convertView;
     }
 
+    //This class is to hold the imageview and be referenced through the getView
     public static class HolderView{
         private final ImageView imageView;
 

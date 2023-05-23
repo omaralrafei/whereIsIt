@@ -31,13 +31,17 @@ public class BoundingBoxActivity extends AppCompatActivity {
 
         myContext = this;
 
+        //Initialize bitmap by the bundle information of the last activity
         Bundle bundle = getIntent().getExtras();
         String filePath = bundle.getString("path");
         mainBitmap = BitmapFactory.decodeFile(filePath.substring(5));
 
+        //set the background of the imageView to the bitmap
         itemImage = findViewById(R.id.bounding_imageview);
         itemImage.setBackground(new BitmapDrawable(myContext.getResources(),mainBitmap));
 
+        //This callback method has the purpose of detecting the size of the imageView depending on the device and setting it to
+        // the imageHeight and width of the Canvas view
         ViewTreeObserver vto = itemImage.getViewTreeObserver();
         vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
             public boolean onPreDraw() {
@@ -50,11 +54,13 @@ public class BoundingBoxActivity extends AppCompatActivity {
             }
         });
 
+        //When cancelling the item selection return to the previous activity
         Button cancelButton = findViewById(R.id.bounding_cancel_button);
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 setResult(RESULT_CANCELED, null);
+                finish();
             }
         });
 
@@ -67,7 +73,7 @@ public class BoundingBoxActivity extends AppCompatActivity {
         });
 
         Button submitButton = findViewById(R.id.bounding_submit_button);
-        //Here the coordinates are converted into the bounding box normalized values
+        //Here the coordinates are converted into the bounding box normalized values and then sent as the result of this activity to be read by the AddItem activity
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
